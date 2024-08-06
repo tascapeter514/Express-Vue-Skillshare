@@ -1,0 +1,22 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "express server for vue frontend",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/tascapeter514/express-vue-skillshare.git"
+  },
+  "author": "Peter Tasca",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/tascapeter514/express-vue-skillshare/issues"
+  },
+  "homepage": "https://gitlab.com/tascapeter514/express-vue-skillshare#readme",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
