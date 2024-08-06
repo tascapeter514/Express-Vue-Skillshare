@@ -1,5 +1,5 @@
 <script setup>
-import { Transition, ref } from "vue";
+import { Transition, onMounted, ref } from "vue";
 let currentUser = localStorage.getItem('user') || "Anon";
 const talkTitle = ref("");
 const talkSummary = ref("");
@@ -71,6 +71,28 @@ const removeTalk = (id) => {
   const talkToDelete = talks.value.find((talk) => talk.id == id);
   talks.value = talks.value.filter((talk) => talk != talkToDelete);
 }
+
+// fetch('/message')
+// .then((res) => res.text())
+// .then((text) => data.value = text)
+// .catch((err) => error.value = err)
+
+const fetchData = async () => {
+  try {
+    const response = await fetch('http://localhost:3000/message')
+    if (!response.ok) {
+      throw new Error ("Network response failed")
+    }
+    data.value = await response.text()
+  } catch (err) {
+    error.value = err;
+  }
+}
+
+onMounted(() => {
+  fetchData();
+})
+
 
 
 
@@ -158,6 +180,15 @@ class="userRadioButtons"
     </form>
   </div>
 
+  <div class="dataContainer">
+    <div v-if="error"> Oops! Error Encountered {{  error.message }}</div>
+    <div v-else-if="data">
+      Data Loaded:
+      <pre> {{  data }}</pre>
+    </div>
+    <div v-else>Loading...</div>
+  </div>
+
  
 
  
@@ -197,6 +228,9 @@ class="userRadioButtons"
     width 2s,
     height 2s,
     delay 3s
+}
+.dataContainer {
+  border: solid orange;
 }
 .userRadioButtons:hover {
   width: 400px;
