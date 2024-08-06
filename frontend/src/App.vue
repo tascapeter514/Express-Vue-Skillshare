@@ -72,23 +72,7 @@ const removeTalk = (id) => {
   talks.value = talks.value.filter((talk) => talk != talkToDelete);
 }
 
-fetch('/getDate')
-.then((res) => res.text())
-.then((text) => {
-  data.value = text;
-})
-.catch((err) => (error.value = err))
 
-// fetch('../')
-//     .then((res) => {
-//       console.log("response:", res)
-
-//     } )
-//     .then((json) => {
-//       console.log("data:", data.value);
-//       data.value = json
-//     })
-//     .catch((err) => (error.value = err))
 
 </script>
 
@@ -174,14 +158,7 @@ class="userRadioButtons"
     </form>
   </div>
 
-  <div class="dataContainer">
-    <div v-if="error">Oops! Error Encountered {{ error.message }}</div>
-    <div v-else-if="data">
-      Data loaded:
-      <pre> {{ data }}</pre>
-    </div>
-    <div v-else>Loading...</div>
-  </div>
+ 
 
  
 
