@@ -7,7 +7,7 @@ const error = ref(null);
 const data = ref(null);
 
 const startingTalks = [
-  {id: 0, toggleTalk: true, presenter: "Peter", title: "Test One", summary: "Test One", comments: []}
+  
 ]
 
 
@@ -72,29 +72,52 @@ const removeTalk = (id) => {
   talks.value = talks.value.filter((talk) => talk != talkToDelete);
 }
 
+
 // fetch('/message')
 // .then((res) => res.text())
 // .then((text) => data.value = text)
 // .catch((err) => error.value = err)
 
-const fetchData = async () => {
-  try {
-    const response = await fetch('http://localhost:3000/message')
-    if (!response.ok) {
-      throw new Error ("Network response failed")
-    }
-    data.value = await response.text()
-  } catch (err) {
-    error.value = err;
-  }
+// const fetchData = async() => {
+//   try {
+//     const response = await fetch('http://localhost:3000/message')
+//     if (!response.ok) {
+//       throw new Error("Error encountered")
+//     }
+//     data.value = await response.text()
+//   }
+//   catch (error) {
+//     console.log("There's been some sort of error:", error)
+//   }
+// }
+
+// onMounted(() => {
+//   fetchData();
+// })
+
+
+
+
+const postMessage = () => {
+  console.log("input success:", talkTitle.value, talkSummary.value);
+  fetch('http://localhost:3000/talk', {
+    method: "PUT",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      title: talkTitle.value,
+      summary: talkSummary.value
+    }) 
+  })
+  talkTitle.value = "";
+  talkSummary.value = "";
 }
 
-onMounted(() => {
-  fetchData();
-})
-
-
-
+fetch('http://localhost:3000/talk')
+.then((res) => res.json())
+.then((json) => data.value = json)
+.catch((err) => error.message = err)
 
 </script>
 
@@ -166,7 +189,7 @@ class="userRadioButtons"
 
 
   <div id="submitForm">
-    <form @submit.prevent="addNewTalk">
+    <form @submit.prevent="postMessage">
       <h3>Submit a Talk</h3>
       <div>
         <label for="title">Title: </label>
@@ -180,14 +203,26 @@ class="userRadioButtons"
     </form>
   </div>
 
-  <div class="dataContainer">
-    <div v-if="error"> Oops! Error Encountered {{  error.message }}</div>
-    <div v-else-if="data">
-      Data Loaded:
-      <pre> {{  data }}</pre>
-    </div>
-    <div v-else>Loading...</div>
+<div class="dataContainer">
+  <div v-if="data"> Data Loaded:
+    <pre> {{ data }}</pre>
   </div>
+  <div v-else-if="error"> {{ error.message }}</div>
+  <div v-else> Loading </div>
+</div>
+
+<!-- <div class="postContainer">
+<form 
+@submit.prevent="postMessage"
+method="PUT">
+  <input v-model="inputMessage">
+  <button
+  type="submit" 
+  class="talkButton"
+  >Post Message</button>
+</form>
+</div> -->
+
 
  
 
@@ -196,6 +231,16 @@ class="userRadioButtons"
 </template>
 
 <style scoped>
+
+
+.postContainer {
+  position: absolute;
+  border: orange solid;
+  width: 200px;
+  left: 1250px;
+  bottom: 400px
+
+}
 
 
 .userNamesContainer {
