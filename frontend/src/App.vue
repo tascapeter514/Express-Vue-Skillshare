@@ -5,13 +5,6 @@ const talkTitle = ref("");
 const talkSummary = ref("");
 const error = ref(null);
 const data = ref(null);
-
-const startingTalks = [
-  
-]
-
-
-const talks = ref(startingTalks);
 let nextCommentId = 0;
 let nextTalkId = 0;
 const userList = ref(["All"]);
@@ -25,26 +18,6 @@ function setUserName() {
   }
   userField.value = ""; 
 }
-
-function addNewTalk() {
-  const talkData = {
-    id: nextTalkId++,
-    toggleTalk: true,
-    presenter: currentUser,
-    title: talkTitle.value,
-    summary: talkSummary.value,
-    comments: [],
-    newComment: ""
-  }
-  talks.value.push(talkData)
-  const repeatName = userList.value.find((user) => user == talkData.presenter);
-  if (!repeatName) {
-    userList.value.push(talkData.presenter);
-  }
-  talkTitle.value = "";
-  talkSummary.value = "";
-}
-  
 
 function addNewComment(talkId) {
   const currentTalk = talks.value.find(talk => talk.id === talkId)
@@ -72,32 +45,6 @@ const removeTalk = (id) => {
   talks.value = talks.value.filter((talk) => talk != talkToDelete);
 }
 
-
-// fetch('/message')
-// .then((res) => res.text())
-// .then((text) => data.value = text)
-// .catch((err) => error.value = err)
-
-// const fetchData = async() => {
-//   try {
-//     const response = await fetch('http://localhost:3000/message')
-//     if (!response.ok) {
-//       throw new Error("Error encountered")
-//     }
-//     data.value = await response.text()
-//   }
-//   catch (error) {
-//     console.log("There's been some sort of error:", error)
-//   }
-// }
-
-// onMounted(() => {
-//   fetchData();
-// })
-
-
-
-
 const postMessage = () => {
   console.log("input success:", talkTitle.value, talkSummary.value);
   fetch('http://localhost:3000/talk', {
@@ -106,22 +53,49 @@ const postMessage = () => {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
+      id: nextTalkId++,
+      toggleTalk: true,
       title: talkTitle.value,
-      summary: talkSummary.value
+      summary: talkSummary.value,
+      presenter: currentUser,
+      comments: []
     }) 
-  })
+  });
+  const repeatName = userList.value.find((user) => user == talkData.presenter);
+  if (!repeatName) {
+    userList.value.push(talkData.presenter);
+  }
   talkTitle.value = "";
   talkSummary.value = "";
 }
+const fetchTalks = async () => {
+  try {
+    let response = await fetch('http://localhost:3000/talk');
+    console.log("response received")
+    let jsonData = await response.json()
+    let newData = JSON.parse(jsonData);
 
-fetch('http://localhost:3000/talk')
-.then((res) => res.json())
-.then((json) => data.value = json)
-.catch((err) => error.message = err)
+    data.value = newData;
+    return newData
 
+  } catch (err) {
+    error.message = err
+  }
+}
+const talks = ref(null)
+onMounted(async () => {
+  try {
+    let startingTalks = await fetchTalks();
+    talks.value = startingTalks
+
+  } catch(err) {
+    error.value = err.message;
+  }
+})
 </script>
 
 <template>
+  
   <header class="titleContainer">
     <h1 id="title">Pete's Skill Sharing Website</h1>
     <hr id ="titleRow">
@@ -156,13 +130,18 @@ class="userRadioButtons"
   </div>
 
 
+  <Suspense>
   <div 
   class="talkContainer"
   >
+  
     <div v-for="talk in talks" :key="talk.id">
+      
       <TransitionGroup name="talkList" tag="p">
+      
       <p v-if="talk.toggleTalk"
        class="talks">
+       
         <h2 > {{ talk.title }}
           <button @click="removeTalk(talk.id)">Remove</button>
         </h2>
@@ -181,11 +160,17 @@ class="userRadioButtons"
         <button>Add comment</button>
       </form>
     </div>
+  
       </p>
+    
     </TransitionGroup>
+  
   </div>
 
+
   </div>
+</Suspense>
+
 
 
   <div id="submitForm">
@@ -202,33 +187,8 @@ class="userRadioButtons"
       <button type="submit">Submit</button>
     </form>
   </div>
-
-<div class="dataContainer">
-  <div v-if="data"> Data Loaded:
-    <pre> {{ data }}</pre>
-  </div>
-  <div v-else-if="error"> {{ error.message }}</div>
-  <div v-else> Loading </div>
-</div>
-
-<!-- <div class="postContainer">
-<form 
-@submit.prevent="postMessage"
-method="PUT">
-  <input v-model="inputMessage">
-  <button
-  type="submit" 
-  class="talkButton"
-  >Post Message</button>
-</form>
-</div> -->
-
-
- 
-
- 
-
 </template>
+
 
 <style scoped>
 

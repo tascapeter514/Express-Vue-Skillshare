@@ -1,7 +1,1 @@
-
-
-{"message":"TESTING RHAENYRA"}
-{"message":"Battle Beneat the God's Eye"}
-{"title":"Rhaenyra","summary":"Daemond"}
-{"title":"Battle","summary":"Beneath the God's Eye"}
-{"title":"Rhaenyra","summary":"Sunspear"}
+[{"id":0,"toggleTalk":true,"title":"try","summary":"this","presenter":"Rhaenyra","comments":[]},{"id":0,"toggleTalk":true,"title":"Can we add another one?","summary":"I think so!","presenter":"Rhaenyra","comments":[]},{"id":0,"toggleTalk":true,"title":"Here we go","summary":"again","presenter":"Rhaenyra","comments":[]},{"id":0,"toggleTalk":true,"title":"try again","summary":"keep going","presenter":"Rhaenyra","comments":[]},{"id":0,"toggleTalk":true,"title":"Again","summary":"Again","presenter":"Rhaenyra","comments":[]}]

@@ -6,6 +6,8 @@ const fs = require('fs');
 
 const cors = require('cors');
 
+const talks = [];
+
 app.use(cors({
     origin: 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'OPTIONS'],
@@ -20,7 +22,8 @@ let message = "Hello there!"
 
  async function talkData() {
     const data = await fs.promises.readFile('talks.json', 'utf8');
-    return JSON.stringify(data)
+    console.log("talks JSON data:", data)
+    return data
  }
 
 
@@ -29,21 +32,29 @@ let message = "Hello there!"
 app.get('/talk', async (req, res, next) => {
     try {
         const data = await talkData();
-        res.send(data)
+        res.send(JSON.stringify(data))
     } catch (err) {
         console.log(`An unexpected error occurred: ${err}`)
     }
     next()
 })
 
-app.put('/talk', (req, res, next) => {
-    console.log("method:", req.method)
-    console.log("URL:", req.url)
-    console.log("body", req.body)
-    fs.appendFile('talks.json', JSON.stringify(req.body) + '\n', (err) => {
-        if (err) console.log(`We're sorry, but there's been a problem with writing the file: ${err}`)
-        else console.log(`Success! The following request body has been written to file: ${JSON.stringify(req.body)}`)
-    })
+
+
+app.put('/talk', async (req, res, next) => {
+    talks.push(req.body);
+    try {
+        const data = JSON.parse(await talkData());
+        data.push(req.body);
+        const toWrite = JSON.stringify(data);
+        fs.writeFile('talks.json', toWrite, (err) => {
+            if (err) console.log(`Error: ${err}`)
+            else console.log("Success!")
+        })
+
+    } catch (err) {
+        console.log(`Apologies, but there's been an problem ${err}`)
+    }
     next()
 })
 
