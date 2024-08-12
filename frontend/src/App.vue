@@ -1,10 +1,9 @@
 <script setup>
-import { Transition, onMounted, ref } from "vue";
+import { Transition, onMounted, onUpdated, ref } from "vue";
 let currentUser = localStorage.getItem('user') || "Anon";
 const talkTitle = ref("");
 const talkSummary = ref("");
 const error = ref(null);
-const data = ref(null);
 let nextCommentId = 0;
 let nextTalkId = 0;
 const userList = ref(["All"]);
@@ -47,7 +46,7 @@ const removeTalk = (id) => {
 
 const postMessage = () => {
   console.log("input success:", talkTitle.value, talkSummary.value);
-  fetch('http://localhost:3000/talk', {
+  fetch('http://localhost:3000/talks/', {
     method: "PUT",
     headers: {
       'Content-Type': 'application/json'
@@ -61,45 +60,189 @@ const postMessage = () => {
       comments: []
     }) 
   });
-  const repeatName = userList.value.find((user) => user == talkData.presenter);
+  const repeatName = userList.value.find((user) => user == currentUser);
   if (!repeatName) {
-    userList.value.push(talkData.presenter);
+    userList.value.push(currentUser);
   }
   talkTitle.value = "";
   talkSummary.value = "";
 }
+
+function fetchOK(url, options) {
+  return fetch(url, options).then(response => {
+    if (response.status < 400) return response;
+    else throw new Error(response.statusText)
+  })
+}
+
 const fetchTalks = async () => {
   try {
-    let response = await fetch('http://localhost:3000/talk');
+    let response = await fetch('http://localhost:3000/talks')
     console.log("response received")
-    let jsonData = await response.json()
-    let newData = JSON.parse(jsonData);
-
-    data.value = newData;
-    return newData
-
+    // console.log("response headers:", response.headers)
+    let data = await response.json()
+    console.log("fetch data:", data)
+    let startingTalks = JSON.parse(data.body);
+    console.log("starting talks:", startingTalks)
+    return startingTalks
   } catch (err) {
+    
+    console.log("Request failed: " + err);
     error.message = err
   }
+  
 }
+
 const talks = ref(null)
-onMounted(async () => {
+
+const pollTalks = async (update) => {
+  let tag = undefined;
+  for (;;) {
+    let response;
+    try {
+      const options = tag ? {
+        headers: {
+          "If None-Match": tag,
+          "Prefer": "wait=90"
+        } 
+      } : {};
+      response = await fetchOK('http://localhost:3000/talks/longpoll', options)
+      // console.log("long poll response received")
+      // console.log("long poll response:", response.headers)
+    } catch (e) {
+      console.log("Request failed: " + e);
+      await new Promise(resolve => setTimeout(resolve, 500))
+      continue;
+    }
+    if (response.status == 304) continue;
+    tag = response.headers.get("ETag");
+    update(await response.json())
+  }
+}
+const updateTalks = (newTalks) => {
+  // console.log("updated new talk data:", newTalks)
+  // console.log("JSON parsed new talks:", JSON.parse(newTalks.body))
+  let updatedTalks = JSON.parse(newTalks.body)
+  // console.log("updated talks:", updatedTalks)
+  talks.value = updatedTalks
+  // talks.value = newTalks
+  // return talks.value
+}
+
+
+
+
+const TxtType = function(el, toRotate, period) {
+  this.toRotate = toRotate;
+  this.el = el;
+  this.loopNum = 0;
+  this.period = parseInt(period, 10) || 2000;
+  this.txt = '';
+  this.tick();
+  this.isDeleting = false;
+}
+TxtType.prototype.tick = function() {
+  const i = this.loopNum % this.toRotate.length;
+  // console.log("current loop iteration:", this.loopNum,"length of the string array:", this.toRotate.length, "remainder or index:", i)
+  const fullTxt = this.toRotate[i];
+  if (this.isDeleting) {
+    this.txt = fullTxt.substring(0, this.txt.length - 1)
+  } else {
+    this.txt = fullTxt.substring(0, this.txt.length + 1)
+  }
+  this.el.innerHTML = '<span class="wrap">'+this.txt+'</span>';
+  let that = this;
+  let delta = 200 - Math.random() * 100;
+
+  if (this.isDeleting) { delta/= 2; }
+
+  if (!this.isDeleting && this.txt === fullTxt) {
+    delta = this.period;
+    this.isDeleting = true;
+  } else if (this.isDeleting && this.txt === '') {
+    this.isDeleting = false;
+    this.loopNum++;
+    delta = 500;
+  }
+
+  setTimeout(function () {
+    that.tick();
+  }, delta)
+}
+window.onload = function() {
+  const elements = document.getElementsByClassName('typewrite');
+  for (let i = 0; i < elements.length; i++) {
+    let toRotate = elements[i].getAttribute('data-type');
+    let period = elements[i].getAttribute('data-period');
+    if (toRotate) {
+      new TxtType(elements[i], JSON.parse(toRotate), period)
+    }
+  }
+}
+
+window.onload = async () => {
   try {
     let startingTalks = await fetchTalks();
+    // console.log("on load starting talks:", startingTalks)
     talks.value = startingTalks
-
-  } catch(err) {
-    error.value = err.message;
+  } catch (err) {
+    error.value = err.message
   }
+}
+
+onMounted(() => {
+  pollTalks(updateTalks)
+  // console.log("on mounted updated talks:", updatedTalks)
+
+  // // talks.value = updatedTalks
+  .catch(error => console.log("poll talks error:", error))
 })
+
+
+
+
+
+
+
+// try {
+//   let newTalks = await pollTalks();
+//   console.log("new talks:", newTalks)
+//   // talks.value = newTalks
+// } catch(err) {
+//   error.value = err.message;
+// }
+
+
+
+// try {
+//   let newTalks = await pollTalks();
+//   console.log("new talks:", newTalks)
+//   // talks.value = newTalks
+// } catch(err) {
+//   error.value = err.message;
+// }
+
+
+
 </script>
 
 <template>
   
   <header class="titleContainer">
     <h1 id="title">Pete's Skill Sharing Website</h1>
+    <h2>
+    <a 
+    href="" 
+    class="typewrite" 
+    data-period="2000"
+    data-type='["Chat with your friends", "Search for your favorite topics", "Find your new community"]'>
+    <span class="wrap"></span>
+    </a>
+    </h2>
     <hr id ="titleRow">
   </header>
+  
+
 
 <div class="userNamesContainer">
   <header>
@@ -166,8 +309,6 @@ class="userRadioButtons"
     </TransitionGroup>
   
   </div>
-
-
   </div>
 </Suspense>
 
@@ -192,6 +333,17 @@ class="userRadioButtons"
 
 <style scoped>
 
+.typewrite {
+  position: absolute;
+  /* left: 100px; */
+  text-decoration: none;
+  font-size: 50px;
+  color: orange !important;
+
+}
+.typewrite > .wrap {
+  color: orange !important;
+}
 
 .postContainer {
   position: absolute;
@@ -233,9 +385,6 @@ class="userRadioButtons"
     width 2s,
     height 2s,
     delay 3s
-}
-.dataContainer {
-  border: solid orange;
 }
 .userRadioButtons:hover {
   width: 400px;
