@@ -5,7 +5,6 @@ const talkTitle = ref("");
 const talkSummary = ref("");
 const error = ref(null);
 let nextCommentId = 0;
-let nextTalkId = 0;
 const userList = ref(["All"]);
 const userField = ref('');
 
@@ -44,7 +43,20 @@ const removeTalk = (id) => {
   talks.value = talks.value.filter((talk) => talk != talkToDelete);
 }
 
-const postMessage = () => {
+const deleteTalk = (talkTitle) => {
+  console.log("JSON title:", title)
+  fetch('http://localhost:3000/talks/:title', {
+    method: "DELETE",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({title: talkTitle})
+  })
+}
+
+
+
+const postTalk = () => {
   console.log("input success:", talkTitle.value, talkSummary.value);
   fetch('http://localhost:3000/talks/', {
     method: "PUT",
@@ -52,12 +64,11 @@ const postMessage = () => {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      id: nextTalkId++,
-      toggleTalk: true,
       title: talkTitle.value,
       summary: talkSummary.value,
       presenter: currentUser,
-      comments: []
+      comments: [],
+      toggleTalk: false
     }) 
   });
   const repeatName = userList.value.find((user) => user == currentUser);
@@ -78,12 +89,9 @@ function fetchOK(url, options) {
 const fetchTalks = async () => {
   try {
     let response = await fetch('http://localhost:3000/talks')
-    console.log("response received")
-    // console.log("response headers:", response.headers)
     let data = await response.json()
-    console.log("fetch data:", data)
-    let startingTalks = JSON.parse(data.body);
-    console.log("starting talks:", startingTalks)
+    // console.log("fetch talks data:", data)
+    let startingTalks = JSON.parse(data.body)
     return startingTalks
   } catch (err) {
     
@@ -93,7 +101,7 @@ const fetchTalks = async () => {
   
 }
 
-const talks = ref(null)
+const talks = ref([])
 
 const pollTalks = async (update) => {
   let tag = undefined;
@@ -107,8 +115,7 @@ const pollTalks = async (update) => {
         } 
       } : {};
       response = await fetchOK('http://localhost:3000/talks/longpoll', options)
-      // console.log("long poll response received")
-      // console.log("long poll response:", response.headers)
+
     } catch (e) {
       console.log("Request failed: " + e);
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -120,13 +127,9 @@ const pollTalks = async (update) => {
   }
 }
 const updateTalks = (newTalks) => {
-  // console.log("updated new talk data:", newTalks)
-  // console.log("JSON parsed new talks:", JSON.parse(newTalks.body))
-  let updatedTalks = JSON.parse(newTalks.body)
-  // console.log("updated talks:", updatedTalks)
-  talks.value = updatedTalks
-  // talks.value = newTalks
-  // return talks.value
+
+  talks.value = JSON.parse(newTalks.body)
+  return talks.value
 }
 
 
@@ -169,22 +172,23 @@ TxtType.prototype.tick = function() {
     that.tick();
   }, delta)
 }
-window.onload = function() {
-  const elements = document.getElementsByClassName('typewrite');
-  for (let i = 0; i < elements.length; i++) {
-    let toRotate = elements[i].getAttribute('data-type');
-    let period = elements[i].getAttribute('data-period');
-    if (toRotate) {
-      new TxtType(elements[i], JSON.parse(toRotate), period)
-    }
-  }
-}
+// window.onload = function() {
+//   const elements = document.getElementsByClassName('typewrite');
+//   for (let i = 0; i < elements.length; i++) {
+//     let toRotate = elements[i].getAttribute('data-type');
+//     let period = elements[i].getAttribute('data-period');
+//     if (toRotate) {
+//       new TxtType(elements[i], JSON.parse(toRotate), period)
+//     }
+//   }
+// }
 
 window.onload = async () => {
   try {
     let startingTalks = await fetchTalks();
     // console.log("on load starting talks:", startingTalks)
     talks.value = startingTalks
+    // console.log("talks dot value:", talks.value)
   } catch (err) {
     error.value = err.message
   }
@@ -192,10 +196,11 @@ window.onload = async () => {
 
 onMounted(() => {
   pollTalks(updateTalks)
+
   // console.log("on mounted updated talks:", updatedTalks)
 
   // // talks.value = updatedTalks
-  .catch(error => console.log("poll talks error:", error))
+  // .catch(error => console.log("poll talks error:", error))
 })
 
 
@@ -204,23 +209,6 @@ onMounted(() => {
 
 
 
-// try {
-//   let newTalks = await pollTalks();
-//   console.log("new talks:", newTalks)
-//   // talks.value = newTalks
-// } catch(err) {
-//   error.value = err.message;
-// }
-
-
-
-// try {
-//   let newTalks = await pollTalks();
-//   console.log("new talks:", newTalks)
-//   // talks.value = newTalks
-// } catch(err) {
-//   error.value = err.message;
-// }
 
 
 
@@ -278,15 +266,15 @@ class="userRadioButtons"
   class="talkContainer"
   >
   
-    <div v-for="talk in talks" :key="talk.id">
+    <div v-for="talk in talks" :key="talk.title">
       
       <TransitionGroup name="talkList" tag="p">
       
-      <p v-if="talk.toggleTalk"
+      <p v-if="talks && talks.length"
        class="talks">
        
         <h2 > {{ talk.title }}
-          <button @click="removeTalk(talk.id)">Remove</button>
+          <button @click="deleteTalk(talk.title)">Remove</button>
         </h2>
         <div>
           by <strong>{{ talk.presenter }}</strong>
@@ -298,7 +286,7 @@ class="userRadioButtons"
       </div>
       </div>
       <div>
-      <form @submit.prevent="addNewComment(talk.id)" id="commentForm">
+      <form @submit.prevent="addNewComment()" id="commentForm">
         <input v-model="talk.newComment">
         <button>Add comment</button>
       </form>
@@ -315,7 +303,7 @@ class="userRadioButtons"
 
 
   <div id="submitForm">
-    <form @submit.prevent="postMessage">
+    <form @submit.prevent="postTalk">
       <h3>Submit a Talk</h3>
       <div>
         <label for="title">Title: </label>

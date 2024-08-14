@@ -3,54 +3,59 @@ const app = express();
 const path = require("path");
 const port = 3000;
 const fs = require('fs');
-
-app.version = 0;
-app.talks = [];
-app.waiting = [];
-
 const cors = require('cors');
 
-app.updated = function() {
-    app.version++;
-    app.waiting.forEach(resolve => resolve(response));
-    app.waiting = []
-}
-
-
+app.version = 0;
+app.waiting = [];
 
 app.use(cors({
     origin: ['http://localhost:5173','http://localhost:5173/talks', 'http://localhost:5173/talks/longpoll'],
-    methods: ['GET', 'POST', 'PUT', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'OPTIONS', 'DELETE'],
     allowedHeaders: 'Content-Type'
 }));
-
 app.use(express.json())
-// app.use(express.text())
+
+
+let incomingData = false;
+app.talks = {}
+
+
+
+ async function testTalkData() {
+    const data = await fs.promises.readFile('talks.json', 'utf8');
+    return data
+ }
+
+ async function loadTalkData() {
+    const data = await testTalkData()
+    if (app.version == 0 && /\S/.test(data)) {
+        let parsedData = JSON.parse(data)
+        app.talks = parsedData
+    }
+ }
+
+ async function initializeApp() {
+    await loadTalkData()
+ }
+
+ if (app.version == 0) {
+    initializeApp()
+ }
+
 // app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 
 
- async function talkData() {
-    const data = await fs.promises.readFile('talks.json', 'utf8');
-    console.log("talks JSON data:", data)
-    return data
- }
-
- 
-
-
-async function talkResponse() {
-    let storedTalks = await talkData();
-    console.log("stored talks:", storedTalks);
-    let talkResponse = {
-        body: storedTalks,
+function startTalksResponse() {
+    let talks = Object.keys(app.talks).map(title => app.talks[title])
+    let response = JSON.stringify(talks)
+    return {
+        body: response,
         headers: {"Content-Type": "application/json",
-                  "ETag": `"${app.version}"`,
+                  "ETag": `"${app.version}`,
                   "Cache-Control": "no-store"}
     }
-    console.log("talk response:", talkResponse);
-    return talkResponse
- 
+
 }
 
 
@@ -58,8 +63,7 @@ async function talkResponse() {
 
 app.get('/talks', async (req, res, next) => {
     try {
-        const data = await talkResponse();
-        console.log("get response talk data with headers:", data)
+        const data = startTalksResponse();
         res.send(data)
     } catch (err) {
         console.log(`An unexpected error occurred: ${err}`)
@@ -67,32 +71,52 @@ app.get('/talks', async (req, res, next) => {
     next()
 })
 
-
-app.put('/talks', async (req, res, next) => {
-    console.log("request body:", req.body)
-    app.talks.push(req.body);
-    try {
-        const data = JSON.parse(await talkData());
-        data.push(req.body);
-        const toWrite = JSON.stringify(data);
+app.update = async function() {
+    app.version++
+    if (incomingData) {
+        let toWrite = JSON.stringify(app.talks)
         fs.writeFile('talks.json', toWrite, (err) => {
             if (err) console.log(`Error: ${err}`)
             else console.log("Success!")
         })
-        app.updated()
+        incomingData = false;
+
+    }
+
+    app.waiting.forEach(resolve => resolve(response));
+    app.waiting = []
+}
+app.put('/talks/', async (req, res, next) => {
+    try {
+        app.talks[req.body.title] = {
+            title: req.body.title,
+            summary: req.body.summary,
+            presenter: req.body.presenter,
+            comments: req.body.comments,
+            toggleTalk: req.body.toggleTalk
+
+        }
+        incomingData = true
+        app.update()
 
     } catch (err) {
         console.log(`Apologies, but there's been an problem ${err}`)
     }
     next()
-})
+    return {status: 204};
+    
+});
 
+
+
+//long polling technique
 app.get('/talks/longpoll', async (req, res, next) => {
     let tag = /"(.*)"/.exec(req.headers["if-none-match"]);
     let wait = /\bwait=(\d+)/.exec(req.headers["prefer"]);
-    console.log("Long poll tag and wait:", tag, wait)
+
+
     if (!tag || tag[1] != app.version) {
-        let response = await talkResponse();
+        let response = startTalksResponse();
         res.send(response)
     } else if (!wait) {
         res.send({status: 304});
@@ -101,6 +125,17 @@ app.get('/talks/longpoll', async (req, res, next) => {
     }
     next()
 });
+
+app.delete('/talks/:title', async (req, res, next) => {
+    let {title} = req.body
+    if (Object.hasOwn(app.talks, title)) {
+        delete app.talks[title];
+        incomingData = true;
+        app.update();
+    }
+    next()
+
+})
 
 app.waitForChanges = function(time) {
     return new Promise(resolve => {
