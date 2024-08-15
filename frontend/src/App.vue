@@ -1,5 +1,6 @@
 <script setup>
 import { Transition, onMounted, onUpdated, ref } from "vue";
+import Comments from '/src/components/Comments.vue'
 let currentUser = localStorage.getItem('user') || "Anon";
 const talkTitle = ref("");
 const talkSummary = ref("");
@@ -194,6 +195,8 @@ window.onload = async () => {
   }
 }
 
+
+//can we rewrite this in terms of watchEffect()
 onMounted(() => {
   pollTalks(updateTalks)
 
@@ -206,7 +209,10 @@ onMounted(() => {
 
 
 
-
+const headingColor = ref({ color: 'orange'})
+const changeColor = () => {
+  headingColor.value = { color: 'red' }
+}
 
 
 
@@ -215,7 +221,7 @@ onMounted(() => {
 </script>
 
 <template>
-  
+  <Comments :headingColor="headingColor" @change-color="changeColor"></Comments>
   <header class="titleContainer">
     <h1 id="title">Pete's Skill Sharing Website</h1>
     <h2>
@@ -406,17 +412,6 @@ class="userRadioButtons"
   overflow: auto;
   scrollbar-width: none;
   transition: center 2s ease-in;
-}
-.dataContainer {
-  position: relative;
-  display: grid;
-  left: 1200px;
-  bottom: 300px;
-  width: 300px;
-  height: 150px;
-  border: solid orange 2px;
-  justify-content: center;
-  align-items: center;
 }
 
 

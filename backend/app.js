@@ -5,6 +5,20 @@ const port = 3000;
 const fs = require('fs');
 const cors = require('cors');
 
+// const testArray = [{peter: false}];
+// const stringify = JSON.stringify(testArray)
+// console.log("stringify:", stringify)
+// fs.writeFile('testTalks.json', stringify, (err) => {
+//     if (err) console.log(`Error: ${err}`)
+//     else console.log("Success!")
+// })
+// let readStringify = fs.readFile('testTalks.json', 'utf8', (err) => {
+//     if (err) console.log(`Error ${err}`)
+//     else console.log('sucess!')
+// })
+// console.log("parsed:", readStringify)
+
+
 app.version = 0;
 app.waiting = [];
 
@@ -113,8 +127,6 @@ app.put('/talks/', async (req, res, next) => {
 app.get('/talks/longpoll', async (req, res, next) => {
     let tag = /"(.*)"/.exec(req.headers["if-none-match"]);
     let wait = /\bwait=(\d+)/.exec(req.headers["prefer"]);
-
-
     if (!tag || tag[1] != app.version) {
         let response = startTalksResponse();
         res.send(response)
