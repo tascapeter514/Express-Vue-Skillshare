@@ -111,7 +111,8 @@ app.put('/talks/', async (req, res, next) => {
 
         }
         incomingData = true
-        app.update()
+        app.update();
+        return {status: 204}
 
     } catch (err) {
         console.log(`Apologies, but there's been an problem ${err}`)
@@ -145,8 +146,31 @@ app.delete('/talks/:title', async (req, res, next) => {
         incomingData = true;
         app.update();
     }
+    return {status: 204}
     next()
 
+})
+
+app.post('/talks/comments', async (req, res, next) => {
+    console.log("post check")
+    let {message, presenter, title} = req.body
+    console.log("message and title:", message, title)
+    console.log("comment message:", message)
+    console.log("title:", title)
+    console.log("working?", Object.hasOwn(app.talks, title))
+    console.log("presenter:", presenter)
+    let comment = {author: presenter, post: message};
+    console.log("comment:", comment)
+    if (Object.hasOwn(app.talks, title)) {
+        app.talks[title].comments.push(comment)
+        console.log("talk comments in server:", app.talks[title])
+        incomingData = true;
+        app.update();
+        return {status: 204}
+    }
+
+
+    next()
 })
 
 app.waitForChanges = function(time) {

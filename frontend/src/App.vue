@@ -5,9 +5,11 @@ let currentUser = localStorage.getItem('user') || "Anon";
 const talkTitle = ref("");
 const talkSummary = ref("");
 const error = ref(null);
-let nextCommentId = 0;
+const talks = ref([])
 const userList = ref(["All"]);
 const userField = ref('');
+const newComment = ref('');
+
 
 
 function setUserName() {
@@ -18,20 +20,7 @@ function setUserName() {
   userField.value = ""; 
 }
 
-function addNewComment(talkId) {
-  const currentTalk = talks.value.find(talk => talk.id === talkId)
-  const commentData = {
-    id: nextCommentId++,
-    presenter: currentUser,
-    message: currentTalk.newComment
-  }
 
-  if (currentTalk) {
-    currentTalk.comments.push(commentData);
-  }
-
-  currentTalk.newComment = "";
-}
 
 const toggleUserTalks = (user) => {
   talks.value.forEach((talk) => { 
@@ -102,7 +91,7 @@ const fetchTalks = async () => {
   
 }
 
-const talks = ref([])
+
 
 const pollTalks = async (update) => {
   let tag = undefined;
@@ -208,11 +197,19 @@ onMounted(() => {
 
 
 
+// const addNewComment = () => {
+//   // console.log(newComment.value)
+//   fetch('http://localhost:3000/talks/comments', {
+//     method: "POST",
+//     headers: {'Content-Type': 'application/json'},
+//     body: JSON.stringify({
+//       message: newComment.value,
+//       presenter: currentUser
+//     })
+//   })
+//   newComment.value = ""
+// }
 
-const headingColor = ref({ color: 'orange'})
-const changeColor = () => {
-  headingColor.value = { color: 'red' }
-}
 
 
 
@@ -221,7 +218,7 @@ const changeColor = () => {
 </script>
 
 <template>
-  <Comments :headingColor="headingColor" @change-color="changeColor"></Comments>
+  
   <header class="titleContainer">
     <h1 id="title">Pete's Skill Sharing Website</h1>
     <h2>
@@ -286,19 +283,16 @@ class="userRadioButtons"
           by <strong>{{ talk.presenter }}</strong>
           <p> {{ talk.summary }}</p>
         </div>
-      <div v-if="talk.comments.length > 0">
-      <div v-for="comment in talk.comments" :key="comment.id">
-        <strong>{{ comment.presenter }}</strong> : {{ comment.message }}
-      </div>
-      </div>
-      <div>
-      <form @submit.prevent="addNewComment()" id="commentForm">
-        <input v-model="talk.newComment">
-        <button>Add comment</button>
-      </form>
-    </div>
-  
+   
+
+
+        <Comments                                                                                                  
+        :comments="talk.comments"
+        :presenter="currentUser"
+        :title="talk.title"
+        ></Comments>
       </p>
+
     
     </TransitionGroup>
   

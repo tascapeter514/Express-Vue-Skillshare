@@ -1,36 +1,88 @@
 <script setup>
+import {ref} from "vue"
+// function addNewComment(talkId) {
+//   const currentTalk = talks.value.find(talk => talk.id === talkId)
+//   const commentData = {
+//    
+//     presenter: currentUser,
+//     message: currentTalk.newComment
+//   }
 
+//   if (currentTalk) {
+//     currentTalk.comments.push(commentData);
+//   }
 
-defineProps({
-    headingColor: Object
+//   currentTalk.newComment = "";
+// }
+const newComment = defineModel()
+
+const props = defineProps({
+    comments: {
+        type: Array,
+        required: true
+    },
+    presenter: String,
+    title: String
 })
+// const emit = defineEmits(['addNewComment'])
 
-const emit = defineEmits(['changeColor'])
-
-function handleColorChange() {
-    emit('changeColor', { color: 'red'})
+function handleNewComment() {
+    // console.log(newComment.value)
+    // console.log("presenter:", props.presenter)
+    // console.log("title:", props.title)
+    fetch('http://localhost:3000/talks/comments', {
+    method: "POST",
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      message: newComment.value,
+      presenter: props.presenter,
+      title: props.title
+    })
+  })
+  newComment.value = ""
 }
-
 
 
 
 
 </script>
 <template>
-    <div class="commentContainer"  >
-        <h1 :style="headingColor">O Brave New World that has such people in it!</h1>
-        <button 
-        :style="headingColor"
-        @click="handleColorChange"
-        >Change my color</button>
 
-    </div>
+
+<div>
+      <div v-for="comment in props.comments" :key="comment.message">
+        <strong> {{ comment.author }}</strong> : {{ comment.post }}
+      </div>
+      </div>
+<div>
+    <form @submit.prevent="handleNewComment">
+    <input v-model="newComment">
+    <button>Add comment</button>
+    </form>
+</div>     
+    
     
 
 
 
 </template>
 <style scoped>
+
+input {
+  background-color: rgb(241, 214, 178);
+  padding: 5px;
+  color: black;
+  border-radius: 15px
+}
+
+button {
+  background-color: orange;
+  margin-top: 10px;
+  border-radius: 30px;
+  font-weight: bold;
+  color: black;
+  border: black;
+}
 
 
 
