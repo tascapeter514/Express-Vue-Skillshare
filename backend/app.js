@@ -72,9 +72,6 @@ function startTalksResponse() {
 
 }
 
-
-
-
 app.get('/talks', async (req, res, next) => {
     try {
         const data = startTalksResponse();
@@ -152,13 +149,7 @@ app.delete('/talks/:title', async (req, res, next) => {
 })
 
 app.post('/talks/comments', async (req, res, next) => {
-    console.log("post check")
     let {message, presenter, title} = req.body
-    console.log("message and title:", message, title)
-    console.log("comment message:", message)
-    console.log("title:", title)
-    console.log("working?", Object.hasOwn(app.talks, title))
-    console.log("presenter:", presenter)
     let comment = {author: presenter, post: message};
     console.log("comment:", comment)
     if (Object.hasOwn(app.talks, title)) {

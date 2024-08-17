@@ -1,19 +1,6 @@
 <script setup>
 import {ref} from "vue"
-// function addNewComment(talkId) {
-//   const currentTalk = talks.value.find(talk => talk.id === talkId)
-//   const commentData = {
-//    
-//     presenter: currentUser,
-//     message: currentTalk.newComment
-//   }
 
-//   if (currentTalk) {
-//     currentTalk.comments.push(commentData);
-//   }
-
-//   currentTalk.newComment = "";
-// }
 const newComment = defineModel()
 
 const props = defineProps({
@@ -24,12 +11,9 @@ const props = defineProps({
     presenter: String,
     title: String
 })
-// const emit = defineEmits(['addNewComment'])
+
 
 function handleNewComment() {
-    // console.log(newComment.value)
-    // console.log("presenter:", props.presenter)
-    // console.log("title:", props.title)
     fetch('http://localhost:3000/talks/comments', {
     method: "POST",
     headers: {'Content-Type': 'application/json'},

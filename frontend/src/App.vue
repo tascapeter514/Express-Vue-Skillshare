@@ -1,15 +1,14 @@
 <script setup>
-import { Transition, onMounted, onUpdated, ref } from "vue";
-import Comments from '/src/components/Comments.vue'
+import {  onMounted, defineAsyncComponent, ref } from "vue";
 let currentUser = localStorage.getItem('user') || "Anon";
-const talkTitle = ref("");
-const talkSummary = ref("");
 const error = ref(null);
 const talks = ref([])
 const userList = ref(["All"]);
 const userField = ref('');
-const newComment = ref('');
 
+const AsyncTalks = defineAsyncComponent(() => 
+  import('/src/components/Talks.vue')
+)
 
 
 function setUserName() {
@@ -28,46 +27,11 @@ const toggleUserTalks = (user) => {
   })
 }
 
-const removeTalk = (id) => {
-  const talkToDelete = talks.value.find((talk) => talk.id == id);
-  talks.value = talks.value.filter((talk) => talk != talkToDelete);
-}
-
-const deleteTalk = (talkTitle) => {
-  console.log("JSON title:", title)
-  fetch('http://localhost:3000/talks/:title', {
-    method: "DELETE",
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({title: talkTitle})
-  })
-}
 
 
 
-const postTalk = () => {
-  console.log("input success:", talkTitle.value, talkSummary.value);
-  fetch('http://localhost:3000/talks/', {
-    method: "PUT",
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      title: talkTitle.value,
-      summary: talkSummary.value,
-      presenter: currentUser,
-      comments: [],
-      toggleTalk: false
-    }) 
-  });
-  const repeatName = userList.value.find((user) => user == currentUser);
-  if (!repeatName) {
-    userList.value.push(currentUser);
-  }
-  talkTitle.value = "";
-  talkSummary.value = "";
-}
+
+
 
 function fetchOK(url, options) {
   return fetch(url, options).then(response => {
@@ -162,18 +126,18 @@ TxtType.prototype.tick = function() {
     that.tick();
   }, delta)
 }
-// window.onload = function() {
-//   const elements = document.getElementsByClassName('typewrite');
-//   for (let i = 0; i < elements.length; i++) {
-//     let toRotate = elements[i].getAttribute('data-type');
-//     let period = elements[i].getAttribute('data-period');
-//     if (toRotate) {
-//       new TxtType(elements[i], JSON.parse(toRotate), period)
-//     }
-//   }
-// }
+const typeWriterEffect = function() {
+  const elements = document.getElementsByClassName('typewrite');
+  for (let i = 0; i < elements.length; i++) {
+    let toRotate = elements[i].getAttribute('data-type');
+    let period = elements[i].getAttribute('data-period');
+    if (toRotate) {
+      new TxtType(elements[i], JSON.parse(toRotate), period)
+    }
+  }
+}
 
-window.onload = async () => {
+const fetchStartingTalks = async () => {
   try {
     let startingTalks = await fetchTalks();
     // console.log("on load starting talks:", startingTalks)
@@ -185,39 +149,20 @@ window.onload = async () => {
 }
 
 
-//can we rewrite this in terms of watchEffect()
 onMounted(() => {
+  fetchStartingTalks()
   pollTalks(updateTalks)
+  typeWriterEffect()
 
-  // console.log("on mounted updated talks:", updatedTalks)
 
-  // // talks.value = updatedTalks
-  // .catch(error => console.log("poll talks error:", error))
 })
-
-
-
-// const addNewComment = () => {
-//   // console.log(newComment.value)
-//   fetch('http://localhost:3000/talks/comments', {
-//     method: "POST",
-//     headers: {'Content-Type': 'application/json'},
-//     body: JSON.stringify({
-//       message: newComment.value,
-//       presenter: currentUser
-//     })
-//   })
-//   newComment.value = ""
-// }
-
-
-
 
 
 
 </script>
 
 <template>
+  
   
   <header class="titleContainer">
     <h1 id="title">Pete's Skill Sharing Website</h1>
@@ -264,58 +209,15 @@ class="userRadioButtons"
   </div>
 
 
-  <Suspense>
-  <div 
-  class="talkContainer"
-  >
-  
-    <div v-for="talk in talks" :key="talk.title">
-      
-      <TransitionGroup name="talkList" tag="p">
-      
-      <p v-if="talks && talks.length"
-       class="talks">
-       
-        <h2 > {{ talk.title }}
-          <button @click="deleteTalk(talk.title)">Remove</button>
-        </h2>
-        <div>
-          by <strong>{{ talk.presenter }}</strong>
-          <p> {{ talk.summary }}</p>
-        </div>
-   
-
-
-        <Comments                                                                                                  
-        :comments="talk.comments"
-        :presenter="currentUser"
-        :title="talk.title"
-        ></Comments>
-      </p>
-
-    
-    </TransitionGroup>
-  
-  </div>
-  </div>
-</Suspense>
+<AsyncTalks 
+  :talks="talks"
+  :user="currentUser"
+  :users="userList">
+</AsyncTalks>
 
 
 
-  <div id="submitForm">
-    <form @submit.prevent="postTalk">
-      <h3>Submit a Talk</h3>
-      <div>
-        <label for="title">Title: </label>
-        <input v-model="talkTitle">
-      </div>
-      <div>
-        <label for="summary">Summary: </label>
-        <input v-model="talkSummary">
-      </div>
-      <button type="submit">Submit</button>
-    </form>
-  </div>
+
 </template>
 
 
@@ -351,7 +253,6 @@ class="userRadioButtons"
   justify-content: center;
   align-content: center;
   position: relative;
-  top: 40px;
   left: 20px;
   border-radius: 50px;
   box-shadow: 15px 15px 15px black;
@@ -391,58 +292,6 @@ class="userRadioButtons"
   align-items: center
 }
 
-.talkContainer {
-  display: flex;
-  border: orange solid;
-  width: 1000px;
-  height: 500px;
-  justify-content: center;
-  align-items: center;
-  border-radius: 100px;
-  box-shadow: 5px 5px 5px black;
-  position: absolute;
-  top: 500px;
-  flex-wrap: wrap;
-  overflow: auto;
-  scrollbar-width: none;
-  transition: center 2s ease-in;
-}
-
-
-.talks {
-  border: orange solid;
-  box-shadow: 15px 15px 15px black;
-  margin: 15px;
-  padding: 30px;
-  border-radius: 50px;
-}
-
-.talkList-move,
-.talkList-enter-active,
-.talkList-leave-active {
-  transition: all 0.5s ease;
-}
-.talkList-enter-from,
-.talkList-leave-to {
-  opacity: 0;
-  transform: translateX(30px);
-}
-
-
-.headerFade-leave-to,
-.headerFade-enter-from {
-  opacity: 0;
-}
-.headerFade-leave-from,
-.headerFade-enter-to {
-  opacity: 1;
-}
-.headerFade-leave-active,
-.headerFade-enter-active {
-  transition: opacity 0.5s;
-}
-
-
 button {
   background-color: orange;
   margin-top: 10px;
@@ -458,27 +307,5 @@ input {
   color: black;
   border-radius: 15px
 }
-
-
-#submitForm {
-  border: orange solid;
-  border-radius: 50px;
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  padding: 10px;
-  top: 150px;
-  position: relative;
-  width: 500px;
-  left: 1100px;
-  box-shadow: 15px 15px 15px black;
-
-}
-
-
-
-
-
-
 
 </style>
