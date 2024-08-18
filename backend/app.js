@@ -23,9 +23,7 @@ app.version = 0;
 app.waiting = [];
 
 app.use(cors({
-    origin: ['http://localhost:5173','http://localhost:5173/talks', 'http://localhost:5173/talks/longpoll'],
-    methods: ['GET', 'POST', 'PUT', 'OPTIONS', 'DELETE'],
-    allowedHeaders: 'Content-Type'
+    exposedHeaders: "ETag"
 }));
 app.use(express.json())
 
@@ -66,7 +64,7 @@ function startTalksResponse() {
     return {
         body: response,
         headers: {"Content-Type": "application/json",
-                  "ETag": `"${app.version}`,
+                  "ETag": `"${app.version}"`,
                   "Cache-Control": "no-store"}
     }
 
@@ -122,18 +120,18 @@ app.put('/talks/', async (req, res, next) => {
 
 
 //long polling technique
-app.get('/talks/longpoll', async (req, res, next) => {
+app.get('/talks/longpoll', async (req, res) => {
     let tag = /"(.*)"/.exec(req.headers["if-none-match"]);
     let wait = /\bwait=(\d+)/.exec(req.headers["prefer"]);
     if (!tag || tag[1] != app.version) {
-        let response = startTalksResponse();
-        res.send(response)
+        let { body, headers } = startTalksResponse();
+        res.set(headers)
+        res.send(body)
     } else if (!wait) {
         res.send({status: 304});
     } else {
         return app.waitForChanges(Number(wait[1]));
     }
-    next()
 });
 
 app.delete('/talks/:title', async (req, res, next) => {

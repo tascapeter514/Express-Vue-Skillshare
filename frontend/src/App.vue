@@ -34,7 +34,7 @@ const toggleUserTalks = (user) => {
 
 
 function fetchOK(url, options) {
-  return fetch(url, options).then(response => {
+  return fetch(url, {...options, mode: "cors"}).then(response => {
     if (response.status < 400) return response;
     else throw new Error(response.statusText)
   })
@@ -64,7 +64,7 @@ const pollTalks = async (update) => {
     try {
       const options = tag ? {
         headers: {
-          "If None-Match": tag,
+          "If-None-Match": tag,
           "Prefer": "wait=90"
         } 
       } : {};
@@ -75,14 +75,19 @@ const pollTalks = async (update) => {
       await new Promise(resolve => setTimeout(resolve, 500))
       continue;
     }
-    if (response.status == 304) continue;
+    if (response.status == 304) {
+      console.log("304 response")
+      continue
+    };
     tag = response.headers.get("ETag");
+    console.log(`Set tag to ${tag}`);
+    debugger
     update(await response.json())
   }
 }
 const updateTalks = (newTalks) => {
 
-  talks.value = JSON.parse(newTalks.body)
+  talks.value = newTalks
   return talks.value
 }
 
@@ -150,9 +155,9 @@ const fetchStartingTalks = async () => {
 
 
 onMounted(() => {
-  fetchStartingTalks()
+  // fetchStartingTalks()
   pollTalks(updateTalks)
-  typeWriterEffect()
+  // typeWriterEffect()
 
 
 })
