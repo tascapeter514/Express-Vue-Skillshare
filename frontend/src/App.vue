@@ -34,7 +34,7 @@ const toggleUserTalks = (user) => {
 
 
 function fetchOK(url, options) {
-  return fetch(url, {...options, mode: "cors"}).then(response => {
+  return fetch(url, options).then(response => {
     if (response.status < 400) return response;
     else throw new Error(response.statusText)
   })
@@ -42,7 +42,7 @@ function fetchOK(url, options) {
 
 const fetchTalks = async () => {
   try {
-    let response = await fetch('http://localhost:3000/talks')
+    let response = await fetch('/talks')
     let data = await response.json()
     // console.log("fetch talks data:", data)
     let startingTalks = JSON.parse(data.body)
@@ -68,7 +68,7 @@ const pollTalks = async (update) => {
           "Prefer": "wait=90"
         } 
       } : {};
-      response = await fetchOK('http://localhost:3000/talks/longpoll', options)
+      response = await fetchOK('/talks/longpoll', options)
 
     } catch (e) {
       console.log("Request failed: " + e);
@@ -81,8 +81,9 @@ const pollTalks = async (update) => {
     };
     tag = response.headers.get("ETag");
     console.log(`Set tag to ${tag}`);
-    debugger
-    update(await response.json())
+    const talkJson = await response.json()
+    console.log(talkJson)
+    update(talkJson)
   }
 }
 const updateTalks = (newTalks) => {

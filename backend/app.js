@@ -1,9 +1,12 @@
 const express = require('express');
+const morgan = require('morgan');
 const app = express();
 const path = require("path");
 const port = 3000;
 const fs = require('fs');
 const cors = require('cors');
+
+app.use(morgan("dev"));
 
 // const testArray = [{peter: false}];
 // const stringify = JSON.stringify(testArray)
@@ -47,12 +50,11 @@ app.talks = {}
  }
 
  async function initializeApp() {
+    console.log('Initializing app')
     await loadTalkData()
+    console.log(`app.talks = ${JSON.stringify(app.talks)}`)
  }
 
- if (app.version == 0) {
-    initializeApp()
- }
 
 // app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
@@ -125,17 +127,21 @@ app.get('/talks/longpoll', async (req, res) => {
     let wait = /\bwait=(\d+)/.exec(req.headers["prefer"]);
     if (!tag || tag[1] != app.version) {
         let { body, headers } = startTalksResponse();
+        console.log(`No tag -- sending ${body}`)
         res.set(headers)
         res.send(body)
     } else if (!wait) {
         res.send({status: 304});
     } else {
-        return app.waitForChanges(Number(wait[1]));
+       const { body, status, headers } = await app.waitForChanges(Number(wait[1]));
+       res.set(headers);
+       res.status(status)
+       res.send(body)
     }
 });
 
 app.delete('/talks/:title', async (req, res, next) => {
-    let {title} = req.body
+    let {title} = req.params
     if (Object.hasOwn(app.talks, title)) {
         delete app.talks[title];
         incomingData = true;
@@ -163,9 +169,11 @@ app.post('/talks/comments', async (req, res, next) => {
 })
 
 app.waitForChanges = function(time) {
+    console.log(`waiting for changes for ${time} seconds`)
     return new Promise(resolve => {
         app.waiting.push(resolve);
         setTimeout(() => {
+            console.log(`timeout completed`)
             if (!app.waiting.includes(resolve)) return;
             app.waiting = app.waiting.filter(r => r != resolve);
             resolve({status: 304})
@@ -173,8 +181,12 @@ app.waitForChanges = function(time) {
     })
 }
 
+initializeApp().then(() => {
+    app.listen(port, () => {
+        console.log(`Server is running on http://localhost:${port}`)
+    })
 
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`)
 })
+
+
 

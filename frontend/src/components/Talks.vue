@@ -18,8 +18,8 @@ import('/src/components/Comments.vue')
 
 
 const deleteTalk = (talkTitle) => {
-  console.log("JSON title:", title)
-  fetch('http://localhost:3000/talks/:title', {
+  console.log("JSON title:", talkTitle)
+  fetch(`/talks/${talkTitle}`, {
     method: "DELETE",
     headers: {
       'Content-Type': 'application/json'
@@ -30,7 +30,7 @@ const deleteTalk = (talkTitle) => {
 
 const postTalk = () => {
   console.log("input success:", talkTitle.value, talkSummary.value);
-  fetch('http://localhost:3000/talks/', {
+  fetch('/talks', {
     method: "PUT",
     headers: {
       'Content-Type': 'application/json'
