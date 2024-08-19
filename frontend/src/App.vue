@@ -65,7 +65,7 @@ const pollTalks = async (update) => {
       const options = tag ? {
         headers: {
           "If-None-Match": tag,
-          "Prefer": "wait=90"
+          "Prefer": "wait=5"
         } 
       } : {};
       response = await fetchOK('/talks/longpoll', options)

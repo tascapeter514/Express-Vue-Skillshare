@@ -30,7 +30,7 @@ const deleteTalk = (talkTitle) => {
 
 const postTalk = () => {
   console.log("input success:", talkTitle.value, talkSummary.value);
-  fetch('/talks', {
+  fetch('/talks/', {
     method: "PUT",
     headers: {
       'Content-Type': 'application/json'

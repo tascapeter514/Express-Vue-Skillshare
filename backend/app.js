@@ -31,18 +31,18 @@ app.use(cors({
 app.use(express.json())
 
 
-let incomingData = false;
+
 app.talks = {}
 
 
 
- async function testTalkData() {
+ async function talkData() {
     const data = await fs.promises.readFile('talks.json', 'utf8');
     return data
  }
 
  async function loadTalkData() {
-    const data = await testTalkData()
+    const data = await talkData()
     if (app.version == 0 && /\S/.test(data)) {
         let parsedData = JSON.parse(data)
         app.talks = parsedData
@@ -60,7 +60,7 @@ app.talks = {}
 
 
 
-function startTalksResponse() {
+function talkResponse() {
     let talks = Object.keys(app.talks).map(title => app.talks[title])
     let response = JSON.stringify(talks)
     return {
@@ -74,30 +74,34 @@ function startTalksResponse() {
 
 app.get('/talks', async (req, res, next) => {
     try {
-        const data = startTalksResponse();
+        const data = talkResponse();
         res.send(data)
     } catch (err) {
         console.log(`An unexpected error occurred: ${err}`)
     }
     next()
 })
-
+//JSM => app.update is called after PUT but is routed to wait for changes function
+//JSM => problem may have to do with the forEach method not resolving responses?
 app.update = async function() {
+    console.log("app update cehck")
     app.version++
-    if (incomingData) {
+    // let response = talkResponse();
         let toWrite = JSON.stringify(app.talks)
+        console.log("to write:", toWrite)
+
         fs.writeFile('talks.json', toWrite, (err) => {
             if (err) console.log(`Error: ${err}`)
             else console.log("Success!")
         })
-        incomingData = false;
 
-    }
+    console.log("app update, app.waiting:", app.waiting)
 
-    app.waiting.forEach(resolve => resolve(response));
+    app.waiting.forEach((resolve, response) => resolve(response));
     app.waiting = []
 }
 app.put('/talks/', async (req, res, next) => {
+    console.log('put request start')
     try {
         app.talks[req.body.title] = {
             title: req.body.title,
@@ -107,26 +111,28 @@ app.put('/talks/', async (req, res, next) => {
             toggleTalk: req.body.toggleTalk
 
         }
-        incomingData = true
+        console.log("app udpate check")
         app.update();
         return {status: 204}
 
     } catch (err) {
         console.log(`Apologies, but there's been an problem ${err}`)
     }
-    next()
-    return {status: 204};
     
 });
 
 
 
 //long polling technique
+//JSM => PUT requests are getting routed to the third condition and returning undefined status and headers
+//the third condition returns a normal status with the timeout, but whenever a PUSH request is made these return undefined
 app.get('/talks/longpoll', async (req, res) => {
     let tag = /"(.*)"/.exec(req.headers["if-none-match"]);
     let wait = /\bwait=(\d+)/.exec(req.headers["prefer"]);
+    console.log("tag:", tag)
+    console.log("app version:", app.version)
     if (!tag || tag[1] != app.version) {
-        let { body, headers } = startTalksResponse();
+        let { body, headers } = talkResponse();
         console.log(`No tag -- sending ${body}`)
         res.set(headers)
         res.send(body)
@@ -134,6 +140,8 @@ app.get('/talks/longpoll', async (req, res) => {
         res.send({status: 304});
     } else {
        const { body, status, headers } = await app.waitForChanges(Number(wait[1]));
+       console.log("long polling status:", status)
+       console.log("long polling status and headers:", body, headers)
        res.set(headers);
        res.status(status)
        res.send(body)
@@ -144,7 +152,6 @@ app.delete('/talks/:title', async (req, res, next) => {
     let {title} = req.params
     if (Object.hasOwn(app.talks, title)) {
         delete app.talks[title];
-        incomingData = true;
         app.update();
     }
     return {status: 204}
@@ -159,7 +166,6 @@ app.post('/talks/comments', async (req, res, next) => {
     if (Object.hasOwn(app.talks, title)) {
         app.talks[title].comments.push(comment)
         console.log("talk comments in server:", app.talks[title])
-        incomingData = true;
         app.update();
         return {status: 204}
     }
@@ -174,12 +180,42 @@ app.waitForChanges = function(time) {
         app.waiting.push(resolve);
         setTimeout(() => {
             console.log(`timeout completed`)
+            console.log("app waiting:", app.waiting)
             if (!app.waiting.includes(resolve)) return;
             app.waiting = app.waiting.filter(r => r != resolve);
-            resolve({status: 304})
+            resolve({
+                status: 304,
+                body: 'No Changes',
+                headers: {'Content-Type': 'application/json'}
+            })
         }, time * 1000)
     })
 }
+
+
+//JSM ==> simpler version of waitforchanges without resolving functions in app.waiting works fine after page reload
+//JSM ==> problem is that PUT keeps getting routed to waitForChanges and returning an undefined status message
+
+
+// app.waitForChanges = function(time) {
+//     console.log("wait for changes check")
+//     console.log("app waiting:", app.waiting)
+//     return new Promise(resolve => {
+        
+//         console.log("before push, app.waiting:", app.waiting)
+//         app.waiting.push(resolve)
+//         console.log("after push, app.waiting:", app.waiting)
+//         setTimeout(() => {
+//             console.log("time out check")
+//             resolve({
+//                 status: 304,
+//                 body: 'No Changes',
+//                 headers: { 'Content-Type': 'application/json' }
+//             });
+//         }, time * 1000);
+//     });
+// };
+
 
 initializeApp().then(() => {
     app.listen(port, () => {
