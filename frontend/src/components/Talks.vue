@@ -30,7 +30,6 @@ const deleteTalk = (talkTitle) => {
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({title: talkTitle})
   })
 }
 
