@@ -65,10 +65,11 @@ const pollTalks = async (update) => {
       const options = tag ? {
         headers: {
           "If-None-Match": tag,
-          "Prefer": "wait=5"
+          "Prefer": "wait=90"
         } 
       } : {};
       response = await fetchOK('/talks/longpoll', options)
+      console.log("response:", response)
 
     } catch (e) {
       console.log("Request failed: " + e);
@@ -81,14 +82,20 @@ const pollTalks = async (update) => {
     };
     tag = response.headers.get("ETag");
     console.log(`Set tag to ${tag}`);
+    console.log("talk JSON check")
+
     const talkJson = await response.json()
-    console.log(talkJson)
+    // const testTalkResponse = await response.status()
+
+    console.log("talk json:", talkJson)
     update(talkJson)
   }
 }
 const updateTalks = (newTalks) => {
+  console.log("new talks to update dom:", newTalks)
 
   talks.value = newTalks
+  console.log("value talks:", talks.value)
   return talks.value
 }
 

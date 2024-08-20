@@ -16,10 +16,16 @@ const AsyncComments = defineAsyncComponent(() =>
 import('/src/components/Comments.vue')
 )
 
+//`/talks/${talkTitle}`
+
+
+//rewrite the delete talks function so the path is right. Ask John about /talks/${talkTitle} construction
 
 const deleteTalk = (talkTitle) => {
-  console.log("JSON title:", talkTitle)
-  fetch(`/talks/${talkTitle}`, {
+  const encodedTitle = encodeURIComponent(talkTitle)
+  // console.log("JSON title:", talkTitle)
+  // console.log("encoded title:", encodedTitle)
+  fetch(`/talks/${encodedTitle}`, {
     method: "DELETE",
     headers: {
       'Content-Type': 'application/json'
