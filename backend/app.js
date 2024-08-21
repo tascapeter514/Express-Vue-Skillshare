@@ -186,35 +186,21 @@ app.put('/talks/', async (req, res, next) => {
 });
 
 
-const deleteTalk = (req, res, next) => {
-    console.log("delete request:", req.body);
-    console.log("delete request params:", req.params);
-    let { title } = req.params;
-    console.log("deleted title", title);
+
+ app.delete('/talks/:title', async (req, res, next) => {
+
+    console.log("delete request:", req.body)
+    console.log("delete request params:", req.params)
+    let {title} = req.params
+    console.log("deleted title:", title)
     if (Object.hasOwn(app.talks, title)) {
         delete app.talks[title];
         app.update();
     }
-    res.status(204).end();
-    next();
-}
-app.delete('/talks/:title', deleteTalk)
-export { deleteTalk }
+    return {status: 204}
+    next()
 
-//  app.delete('/talks/:title', async (req, res, next) => {
-
-//     console.log("delete request:", req.body)
-//     console.log("delete request params:", req.params)
-//     let {title} = req.params
-//     console.log("deleted title:", title)
-//     if (Object.hasOwn(app.talks, title)) {
-//         delete app.talks[title];
-//         app.update();
-//     }
-//     return {status: 204}
-//     next()
-
-// })
+})
 
 app.post('/talks/comments', async (req, res, next) => {
     let {message, presenter, title} = req.body
