@@ -5,6 +5,7 @@ const path = require("path");
 const port = 3000;
 const fs = require('fs');
 const cors = require('cors');
+const { Pool } = require('pg')
 
 app.use(morgan("dev"));
 
@@ -21,6 +22,13 @@ app.use(morgan("dev"));
 // })
 // console.log("parsed:", readStringify)
 
+const pool = new Pool({
+    user: 'petertasca',
+    host: 'localhost',
+    database: 'mytalksdatabase',
+    password: 'randomtask',
+    port: 5432,
+});
 
 app.version = 0;
 app.waiting = [];
@@ -29,10 +37,17 @@ app.use(cors({
     exposedHeaders: "ETag"
 }));
 app.use(express.json())
+app.talks = {};
 
-
-
-app.talks = {}
+app.get('/talks', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM talks')
+        res.json(result.rows)
+    } catch (error) {
+        console.error('Error executing query', error.stack);
+        res.status(500).send('Error executing query')
+    }
+})
 
 
 
