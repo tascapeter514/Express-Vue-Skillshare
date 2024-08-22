@@ -5,7 +5,57 @@ const path = require("path");
 const port = 3000;
 const fs = require('fs');
 const cors = require('cors');
-const { Pool } = require('pg')
+// const pg = require('pg');
+// const { Client } = pg;
+
+
+// const client = new Client({
+//     user: 'petertasca',
+//     host: 'localhost',
+//     database: 'mytalksdatabase',
+//     password: 'randomtask',
+//     port: 5432
+// })
+
+// app.get('/talks/database', async (req, res, next) => {
+//     try {
+//         const result = await client.query('SELECT * FROM talks')
+//         console.log("database result:",result)
+//         res.json(result.rows)
+
+//     } catch (error) {
+//         console.error("Error executing query", error.stack);
+//         res.status(500).send("Error executing query")
+//     }   
+// })
+
+
+const { Pool } = require('pg');
+
+const pool = new Pool({
+    user: 'petertasca',
+    host: 'localhost',
+    database: 'mytalksdatabase',
+    password: 'randomtask',
+    port: 5432,
+});
+
+app.get ('/talks/database', async (req, res, next) => {
+    console.log("talk/database hit")
+    try {
+        const result = await pool.query('SELECT * FROM talks')
+        console.log("post gres result:", result.rows)
+        res.send(result.rows)
+
+        
+    } catch (error) {
+        console.error('Error executing query', error.stack)
+        res.status(500).send('Error executing query')
+    }
+})
+
+
+
 
 app.use(morgan("dev"));
 
@@ -22,13 +72,7 @@ app.use(morgan("dev"));
 // })
 // console.log("parsed:", readStringify)
 
-const pool = new Pool({
-    user: 'petertasca',
-    host: 'localhost',
-    database: 'mytalksdatabase',
-    password: 'randomtask',
-    port: 5432,
-});
+
 
 app.version = 0;
 app.waiting = [];
@@ -39,15 +83,7 @@ app.use(cors({
 app.use(express.json())
 app.talks = {};
 
-app.get('/talks', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM talks')
-        res.json(result.rows)
-    } catch (error) {
-        console.error('Error executing query', error.stack);
-        res.status(500).send('Error executing query')
-    }
-})
+
 
 
 

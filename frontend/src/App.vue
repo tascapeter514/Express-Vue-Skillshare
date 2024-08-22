@@ -5,6 +5,7 @@ const error = ref(null);
 const talks = ref([])
 const userList = ref(["All"]);
 const userField = ref('');
+const postgresData = ref()
 
 const AsyncTalks = defineAsyncComponent(() => 
   import('/src/components/Talks.vue')
@@ -55,7 +56,22 @@ const fetchTalks = async () => {
   
 }
 
+const fetchPostgres = async () => {
+  try {
+    let response = await fetch('/talks/database')
+    console.log("post gres:", response)
+    let data = await response.json()
+    console.log("post gres JSON data:", data)
+    let [postgresObj] = data
+    postgresData.value = postgresObj
+    console.log("post gres data value:", postgresData.value)
 
+
+  } catch (err) {
+    console.log("Request failed: " + err)
+    error.message = err;
+  }
+}
 
 const pollTalks = async (update) => {
   let tag = undefined;
@@ -162,9 +178,11 @@ const fetchStartingTalks = async () => {
 }
 
 
+
 onMounted(() => {
   // fetchStartingTalks()
   pollTalks(updateTalks)
+  fetchPostgres()
   // typeWriterEffect()
 
 
@@ -175,6 +193,14 @@ onMounted(() => {
 </script>
 
 <template>
+
+  <div class="postgresContainer">
+
+    {{ postgresData }}
+
+
+
+  </div>
   
   
   <header class="titleContainer">
@@ -235,7 +261,16 @@ class="userRadioButtons"
 
 
 <style scoped>
+.postgresContainer {
+  position: absolute;
+  border: solid;
+  color: orange;
+  width: 200px;
+  height: 200px;
+  left: 1500px;
 
+
+}
 .typewrite {
   position: absolute;
   /* left: 100px; */
