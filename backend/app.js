@@ -5,52 +5,89 @@ const path = require("path");
 const port = 3000;
 const fs = require('fs');
 const cors = require('cors');
-// const pg = require('pg');
-// const { Client } = pg;
+app.use(express.json());
 
 
-// const client = new Client({
-//     user: 'petertasca',
-//     host: 'localhost',
-//     database: 'mytalksdatabase',
-//     password: 'randomtask',
-//     port: 5432
-// })
+//postgres refactoring --> update all route handlers when finished
 
-// app.get('/talks/database', async (req, res, next) => {
-//     try {
-//         const result = await client.query('SELECT * FROM talks')
-//         console.log("database result:",result)
-//         res.json(result.rows)
-
-//     } catch (error) {
-//         console.error("Error executing query", error.stack);
-//         res.status(500).send("Error executing query")
-//     }   
-// })
-
-
-const { Pool } = require('pg');
+const pg = require('pg');
+const { Pool } = pg;
 
 const pool = new Pool({
     user: 'petertasca',
     host: 'localhost',
     database: 'mytalksdatabase',
     password: 'randomtask',
-    port: 5432,
-});
+    port: 5432
+})
 
-app.get ('/talks/database', async (req, res, next) => {
-    console.log("talk/database hit")
+
+app.get('/talks/database', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM talks')
-        console.log("post gres result:", result.rows)
-        res.send(result.rows)
+        let result = await pool.query('SELECT * FROM talks')
+        console.log("rows:", result.rows)
+        res.json(result.rows)
 
-        
     } catch (error) {
-        console.error('Error executing query', error.stack)
-        res.status(500).send('Error executing query')
+        console.log('Error encountered in query: ', error.stack);
+        res.status(500).json({'Error encountered in query': error.stack})
+
+    } 
+})
+
+app.post('/talks/database/comments', async (req, res) => {
+    console.log("Comment Post Gres")
+    try {
+        let { message, author , title } = req.body;
+        let comment = JSON.stringify({presenter: author, post: message});
+        let text = 'UPDATE talks SET comments = array_append(comments, $1::jsonb) WHERE title = $2'
+        let values = [comment, title];
+        let result = await pool.query(text, values);
+        if (result.rowCount > 0) {
+            res.status(200).json({message: 'Comment added successfully'})
+        } else {
+            res.status(404).json({error: 'Talk not found'})
+        }
+    } catch(error) {
+        console.log("there was a problem posting to the database:", error);
+        res.status(500).json({error: 'Error updating comments'})
+    }
+})
+
+app.delete('/talks/database/:title', async (req, res) => {
+    console.log("postgres:", req.params)
+    let title = req.params.title
+    console.log("postgres:", title)
+    try {
+        let text = 'DELETE FROM talks WHERE title = $1'
+        let result = await pool.query(text, [title])
+        if (result.rowCount > 0) {
+            res.status(200).json({message: 'Delete was successful'})
+        } else {
+            res.status(500).json({error: 'Error updating comments'})
+        }
+
+    } catch(error) {
+        console.log("There's been a problem with the deletion:", error);
+        res.status(500).json({error: 'Error updating comments'})
+    }
+})
+
+app.put('/talks/database/addTalk', async (req, res) => {
+    console.log(req.body)
+    let {presenter, title, summary, comments} = req.body;
+    try {
+        let text = 'INSERT INTO talks (title, presenter, summary) VALUES ($1, $2, $3)'
+        let values = [title, presenter, summary];
+        let result = await pool.query(text, values);
+        if (result.rowCount > 0) {
+            res.status(200).json({message: 'Talk was posted successfully'})
+        } else {
+            res.status(500).json({erro: 'Error posting talk'})
+        } 
+    } catch(error) {
+        console.log("There's been a problem with posting the talk:", error);
+        res.status(500).json({error: "Error posting talk"})
     }
 })
 
@@ -80,7 +117,7 @@ app.waiting = [];
 app.use(cors({
     exposedHeaders: "ETag"
 }));
-app.use(express.json())
+
 app.talks = {};
 
 
