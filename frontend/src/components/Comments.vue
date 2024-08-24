@@ -17,7 +17,7 @@ function handleNewComment() {
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
       message: newComment.value,
-      presenter: props.presenter,
+      author: props.presenter,
       title: props.title
     })
   })
@@ -25,13 +25,16 @@ function handleNewComment() {
 }
 
 
-
+console.log("comments:", props.comments)
 
 </script>
 <template>
 <div>
-      <div v-for="comment in props.comments" :key="comment.message">
-        <strong> {{ comment.presenter }}</strong> : {{ comment.post }}
+      <div v-for="comment in props.comments" :key="comment.presenter">
+        <div v-if="props.comments.length > 0">
+          <strong> {{ comment.presenter }}</strong> : {{ comment.message }}
+        </div>
+        
       </div>
       </div>
 <div>

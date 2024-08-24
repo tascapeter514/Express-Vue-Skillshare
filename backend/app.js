@@ -37,9 +37,10 @@ app.post('/talks/database/comments', async (req, res) => {
 
     try {
         let { message, author , title } = req.body;
-        let comment = JSON.stringify({presenter: author, post: message});
-        let text = 'UPDATE talks SET comments = array_append(comments, $1::jsonb) WHERE title = $2'
-        let values = [comment, title];
+        // let comment = JSON.stringify({presenter: author, post: message});
+        // let text = 'UPDATE talks SET comments = array_append(comments, $1::jsonb) WHERE talktitle = $2'
+        let text = 'INSERT INTO comments (talktitle, message, presenter) VALUES ($1, $2, $3)'
+        let values = [title, message, author];
         let result = await pool.query(text, values);
         if (result.rowCount > 0) {
             res.status(200).json({message: 'Comment added successfully'})
@@ -88,28 +89,59 @@ app.put('/talks/database/addTalk', async (req, res) => {
     }
 })
 
-
-
-
+// , array_agg(comments) AS talks.comments
+//     FROM talks
+//     INNER JOIN comments ON talks.title = comments.talktitle
 async function talkResponse() {
-    let result = await pool.query('SELECT * FROM talks');
-    // console.log("post gres talk response check:", result)
+    const query = `SELECT talks.title, talks.presenter, talks.summary,
+    array_agg(
+        json_build_object(
+            'message', comments.message,
+            'presenter', comments.presenter
+        )
+    ) AS comments
+    FROM talks
+    LEFT JOIN comments ON talks.title = comments.talktitle
+    GROUP BY talks.title, talks.presenter, talks.summary;`
+    console.log("query:", query)
+    let result = await pool.query(query)
+    // console.log("test comments response:", result)
     let data = JSON.stringify(result.rows)
-    // console.log("post gres JSON data:", data)
+    console.log("talk response data:", data)
     return {
         body: data,
         status: 200,
         headers: {
             'Content-Type': 'application/json',
-            "ETag": `"${app.version}"`,
+            'ETag': `"${app.version}"`,
             'Cache-Control': 'no-store'
         }
     }
 }
 
+
+// async function talkResponse() {
+//     let result = await pool.query('SELECT * FROM talks');
+//     // console.log("post gres talk response check:", result)
+//     let data = JSON.stringify(result.rows)
+//     // console.log("post gres JSON data:", data)
+//     return {
+//         body: data,
+//         status: 200,
+//         headers: {
+//             'Content-Type': 'application/json',
+//             "ETag": `"${app.version}"`,
+//             'Cache-Control': 'no-store'
+//         }
+//     }
+// }
+
 app.get('/talks', async (req, res, next) => {
     try {
+        // let commentData = await testCommentsResponse();
+        // console.log("comment data:", commentData)
         let data = await talkResponse()
+        console.log("get data talk response:", data)
         res.send(data)
     } catch(error) {
         console.log('There was an error fetching the talks:', error.stack)
@@ -151,10 +183,15 @@ app.get('/talks/longpoll', async (req, res) => {
     let tag = /"(.*)"/.exec(req.headers["if-none-match"]);
     let wait = /\bwait=(\d+)/.exec(req.headers["prefer"]);
     if (!tag || tag[1] != app.version) {
+
+
+
+
+
         let { body, headers } = await talkResponse();
 
-        // console.log("long poll body:", headers)
-        // console.log("long poll body:", body)
+        console.log("long poll headers:", headers)
+        console.log("long poll body:", body)
         console.log(`No tag -- sending ${body}`)
         res.set(headers)
         res.send(body)

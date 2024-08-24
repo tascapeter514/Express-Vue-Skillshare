@@ -1,6 +1,6 @@
 <script setup>
 import {ref, defineAsyncComponent} from 'vue'
-import Comments from '/src/components/Comments.vue'
+
 
 const talkTitle = ref("");
 const talkSummary = ref("");
@@ -51,10 +51,12 @@ const postTalk = () => {
   talkSummary.value = "";
 }
 
+console.log("comments in talks:", props.talks)
+
 </script>
 
 <template>
-     <!-- <Suspense> -->
+
   <div 
   class="talkComponentContainer"
   >
@@ -84,7 +86,7 @@ const postTalk = () => {
   
   </div>
   </div>
-<!-- </Suspense> -->
+
 
 
 
