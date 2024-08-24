@@ -1,12 +1,10 @@
 <script setup>
-import {ref} from "vue"
 
 const newComment = defineModel()
 
 const props = defineProps({
     comments: {
         type: Array,
-
     },
     presenter: String,
     title: String
@@ -31,11 +29,9 @@ function handleNewComment() {
 
 </script>
 <template>
-
-
 <div>
       <div v-for="comment in props.comments" :key="comment.message">
-        <strong> {{ comment.author }}</strong> : {{ comment.post }}
+        <strong> {{ comment.presenter }}</strong> : {{ comment.post }}
       </div>
       </div>
 <div>
@@ -46,9 +42,6 @@ function handleNewComment() {
 </div>     
     
     
-
-
-
 </template>
 <style scoped>
 

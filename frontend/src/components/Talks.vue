@@ -16,10 +16,6 @@ const AsyncComments = defineAsyncComponent(() =>
 import('/src/components/Comments.vue')
 )
 
-//`/talks/${talkTitle}`
-
-
-//rewrite the delete talks function so the path is right. Ask John about /talks/${talkTitle} construction
 
 const deleteTalk = (talkTitle) => {
   const encodedTitle = encodeURIComponent(talkTitle)
@@ -80,11 +76,6 @@ const postTalk = () => {
    
 
 
-        <!-- <Comments                                                                                                  
-        :comments="talk.comments"
-        :presenter="props.user"
-        :title="talk.title"
-        ></Comments> -->
         <AsyncComments :comments="talk.comments" :presenter="props.user" :title="talk.title"></AsyncComments>
       </p>
 

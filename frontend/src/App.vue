@@ -1,12 +1,10 @@
 <script setup>
 import {  onMounted, defineAsyncComponent, ref } from "vue";
 let currentUser = localStorage.getItem('user') || "Anon";
-const error = ref(null);
 const talks = ref()
 const userList = ref(["All"]);
 const userField = ref('');
-const postgresTalks = ref()
-const postgresTalkState = []
+
 
 
 const AsyncTalks = defineAsyncComponent(() => 
@@ -30,80 +28,6 @@ const toggleUserTalks = (user) => {
   })
 }
 
-
-// postgres refactoring starts here
-const postGresMessage = ref('')
-const pgsqlSummary = ref('')
-const pgsqlTitle = ref('')
-const postgresFetch = async () => {
-  try {
-    let response = await fetch('/talks');
-    let data = await response.json()
-    console.log("postgres data:", data)
-
-    talks.value = data
-
-  } catch (err) {
-    console.log("There was an error fetching: ", err);
-    error.value = err.message;
-  }
-}
-
-
-
-
-// const addPostGresComment = async (postgresTitle) => {
-//   console.log("input success:", postgresTitle )
-//   const currentTalk = postgresTalks.value.find(talk => talk.title === postgresTitle)
-//   console.log("current talk:", currentTalk)
-//   try {
-//     fetch('/talks/database/comments', {
-//       method: "POST",
-//       headers: {'Content-Type': 'application/json'},
-//       body: JSON.stringify({
-//         author: currentUser,
-//         title: postgresTitle,
-//         message: currentTalk.newComment
-
-//       })
-//     });
-//     currentTalk.newComment = ""
-
-//   } catch (err) {
-//     console.log("there was an error posting:", err);
-//     error.value = err.message;
-
-//   }
-// }
-
-// const deletePGSQL = async (title) => {
-//   console.log("input success:", title);
-//   const encodedTitle = encodeURIComponent(title)
-//   fetch(`/talks/database/${encodedTitle}`, {
-//     method: 'DELETE',
-//     headers: {
-//       'Content-Type': 'application/json'
-//     } 
-//   })
-// }
-
-// const postTalkToDatabase = async () => {
-//   fetch('/talks/database/addTalk', {
-//     method: 'PUT',
-//     headers: {'Content-Type': 'application/json'},
-//     body: JSON.stringify({
-//       presenter: currentUser,
-//       summary: pgsqlSummary.value,
-//       title: pgsqlTitle.value,
-//       comments: []
-//     })
-//   })
-//   pgsqlSummary.value = '';
-//   pgsqlTitle.value = '';
-// }
-
-
-
 function fetchOK(url, options) {
   return fetch(url, options).then(response => {
     if (response.status < 400) return response;
@@ -111,20 +35,7 @@ function fetchOK(url, options) {
   })
 }
 
-const fetchTalks = async () => {
-  try {
-    let response = await fetch('/talks')
-    let data = await response.json()
-    // console.log("fetch talks data:", data)
-    let startingTalks = JSON.parse(data.body)
-    return startingTalks
-  } catch (err) {
-    
-    console.log("Request failed: " + err);
-    error.message = err
-  }
-  
-}
+
 
 const pollTalks = async (update) => {
   let tag = undefined;
@@ -138,8 +49,6 @@ const pollTalks = async (update) => {
         } 
       } : {};
       response = await fetchOK('/talks/longpoll', options)
-      console.log("response:", response)
-
     } catch (e) {
       console.log("Request failed: " + e);
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -151,20 +60,12 @@ const pollTalks = async (update) => {
     };
     tag = response.headers.get("ETag");
     console.log(`Set tag to ${tag}`);
-    console.log("talk JSON check")
-
     const talkJson = await response.json()
-    // const testTalkResponse = await response.status()
-
-    console.log("talk json:", talkJson)
     update(talkJson)
   }
 }
 const updateTalks = (newTalks) => {
-  console.log("new talks to update dom:", newTalks)
-
   talks.value = newTalks
-  console.log("value talks:", talks.value)
   return talks.value
 }
 
@@ -220,23 +121,13 @@ const typeWriterEffect = function() {
   }
 }
 
-const fetchStartingTalks = async () => {
-  try {
-    let startingTalks = await fetchTalks();
-    // console.log("on load starting talks:", startingTalks)
-    talks.value = startingTalks
-    // console.log("talks dot value:", talks.value)
-  } catch (err) {
-    error.value = err.message
-  }
-}
+
 
 
 
 onMounted(() => {
-  // fetchStartingTalks()
-  postgresFetch()
-  // pollTalks(updateTalks)
+
+  pollTalks(updateTalks)
   // typeWriterEffect()
   
 
@@ -248,46 +139,8 @@ onMounted(() => {
 </script>
 
 <template>
-<div class="postgresContainer">
-  <div v-for="postgresTalk in postgresTalks" :key="postgresTalk.title">
-    <p class="talksPostGres" v-if="postgresTalks.length > 0">
-      <h2>{{ postgresTalk.title }}
-        <button @click="deletePGSQL(postgresTalk.title)">Remove</button>
-      
-      </h2>
-      <div>
-        by <strong>{{ postgresTalk.presenter }}</strong>
-        <p>{{ postgresTalk.summary }}</p>
-      </div>
-      <div>
-        <div v-for="postgresComment in postgresTalk.comments" :key="postgresComment.presenter">
-          <strong> {{ postgresComment.presenter }}</strong> : {{ postgresComment.post }}
-        </div>
-      </div>
-      <div>
-        <form @submit.prevent="addPostGresComment(postgresTalk.title)">
-          <input v-model="postgresTalk.newComment">
-          <button>Add Comment</button>
-        </form>
-      </div>
-    </p>
-  </div>
-</div>
 
-<div class="postgresSubmit">
-  <h3>Submit a Talk</h3>
-  <form @submit.prevent="postTalkToDatabase">
-    <div>
-      <label for="postgresTitle">Title:</label>
-      <input id="postgresTitle" v-model="pgsqlTitle">
-    </div>
-    <div>
-      <label for="postgresSummary"></label>
-      Summary: <input id="postgresSummary" v-model="pgsqlSummary">
-    </div>
-    <button>Submit</button> 
-  </form>
-</div>
+
   
   
   <header class="titleContainer">
