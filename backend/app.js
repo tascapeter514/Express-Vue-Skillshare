@@ -21,19 +21,40 @@ const pool = new Pool({
     port: 5432
 })
 
-
-app.get('/talks/database', async (req, res) => {
+async function pgsqlData() {
     try {
         let result = await pool.query('SELECT * FROM talks')
-        console.log("rows:", result.rows)
-        res.json(result.rows)
+        let data = res.json(result.rows);
+        return data
+    } catch(error) {
+        console.log('There was an error fetching the talks from the database:', error)
+        res.status(505).json({error: 'There was an error with getting the talks from the database'})
+    }
+}
 
-    } catch (error) {
-        console.log('Error encountered in query: ', error.stack);
-        res.status(500).json({'Error encountered in query': error.stack})
 
-    } 
-})
+
+
+async function loadPGSQLData() {
+    const data = await pgsqlData();
+    if (app.version == 0 && /\S/.test(data)) {
+        console.log("heres the postgress data:", data)
+    }
+
+}
+
+// app.get('/talks/database', async (req, res) => {
+//     try {
+//         let result = await pool.query('SELECT * FROM talks')
+//         console.log("rows:", result.rows)
+//         res.json(result.rows)
+
+//     } catch (error) {
+//         console.log('Error encountered in query: ', error.stack);
+//         res.status(500).json({'Error encountered in query': error.stack})
+
+//     } 
+// })
 
 app.post('/talks/database/comments', async (req, res) => {
     console.log("Comment Post Gres")
@@ -83,7 +104,7 @@ app.put('/talks/database/addTalk', async (req, res) => {
         if (result.rowCount > 0) {
             res.status(200).json({message: 'Talk was posted successfully'})
         } else {
-            res.status(500).json({erro: 'Error posting talk'})
+            res.status(500).json({error: 'Error posting talk'})
         } 
     } catch(error) {
         console.log("There's been a problem with posting the talk:", error);
@@ -123,7 +144,7 @@ app.talks = {};
 
 
 
-
+//switch to postgresdatabase
  async function talkData() {
     const data = await fs.promises.readFile('talks.json', 'utf8');
     return data
@@ -148,19 +169,19 @@ app.talks = {};
 // app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 
+//switch to postgres database
+// function talkResponse() {
+//     let talks = Object.keys(app.talks).map(title => app.talks[title])
+//     let response = JSON.stringify(talks)
+//     return {
+//         body: response,
+//         status: 200,
+//         headers: {"Content-Type": "application/json",
+//                   "ETag": `"${app.version}"`,
+//                   "Cache-Control": "no-store"}
+//     }
 
-function talkResponse() {
-    let talks = Object.keys(app.talks).map(title => app.talks[title])
-    let response = JSON.stringify(talks)
-    return {
-        body: response,
-        status: 200,
-        headers: {"Content-Type": "application/json",
-                  "ETag": `"${app.version}"`,
-                  "Cache-Control": "no-store"}
-    }
-
-}
+// }
 
 
 
@@ -212,15 +233,66 @@ app.waitForChanges = function(time) {
     }))
 }
 
+//REFACTORING IN PROGRESS
+
+async function talkResponse() {
+    let result = await pool.query('SELECT * FROM talks');
+    // console.log("post gres talk response check:", result)
+    let data = JSON.stringify(result.rows)
+    console.log("post gres JSON data:", data)
+    return data
+
+
+
+    // let data = res.json(result.rows);
+    // console.log("talk response fetch data:", data)
+    // return data
+
+
+    // return {
+    //     body: response,
+    //     status: 200,
+    //     headers: {"Content-Type": "application/json",
+    //               "ETag": `"${app.version}"`,
+    //               "Cache-Control": "no-store"}
+    // }
+
+}
+
 app.get('/talks', async (req, res, next) => {
     try {
-        const data = talkResponse();
+        let data = await talkResponse()
+        console.log("check to see if postgres data has been fetched:", data)
         res.send(data)
-    } catch (err) {
-        console.log(`An unexpected error occurred: ${err}`)
+
+    } catch(error) {
+        console.log('There was an error fetching the talks:', error.stack)
     }
-    next()
 })
+
+// app.get('/talks/database', async (req, res) => {
+//     try {
+//         let result = await pool.query('SELECT * FROM talks')
+//         console.log("rows:", result.rows)
+//         res.json(result.rows)
+
+//     } catch (error) {
+//         console.log('Error encountered in query: ', error.stack);
+//         res.status(500).json({'Error encountered in query': error.stack})
+
+//     } 
+// })
+
+
+// app.get('/talks', async (req, res, next) => {
+//     try {
+//         const data = talkResponse();
+//         res.send(data)
+//     } catch (err) {
+//         console.log(`An unexpected error occurred: ${err}`)
+//     }
+//     next()
+// })
 
 app.get('/talks/longpoll', async (req, res) => {
     let tag = /"(.*)"/.exec(req.headers["if-none-match"]);

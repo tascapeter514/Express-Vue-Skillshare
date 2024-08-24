@@ -6,7 +6,7 @@ const newComment = defineModel()
 const props = defineProps({
     comments: {
         type: Array,
-        required: true
+
     },
     presenter: String,
     title: String
@@ -14,7 +14,7 @@ const props = defineProps({
 
 
 function handleNewComment() {
-    fetch('http://localhost:3000/talks/comments', {
+    fetch('/talks/database/comments', {
     method: "POST",
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({

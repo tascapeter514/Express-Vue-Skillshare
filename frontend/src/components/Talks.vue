@@ -25,7 +25,7 @@ const deleteTalk = (talkTitle) => {
   const encodedTitle = encodeURIComponent(talkTitle)
   // console.log("JSON title:", talkTitle)
   // console.log("encoded title:", encodedTitle)
-  fetch(`/talks/${encodedTitle}`, {
+  fetch(`/talks/database/${encodedTitle}`, {
     method: "DELETE",
     headers: {
       'Content-Type': 'application/json'
@@ -35,7 +35,7 @@ const deleteTalk = (talkTitle) => {
 
 const postTalk = () => {
   console.log("input success:", talkTitle.value, talkSummary.value);
-  fetch('/talks/', {
+  fetch('/talks/database/addTalk', {
     method: "PUT",
     headers: {
       'Content-Type': 'application/json'
@@ -45,7 +45,6 @@ const postTalk = () => {
       summary: talkSummary.value,
       presenter: props.user,
       comments: [],
-      toggleTalk: false
     }) 
   });
   const repeatName = props.users.find((user) => user == props.user);
