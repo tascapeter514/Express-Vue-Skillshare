@@ -110,6 +110,8 @@ TxtType.prototype.tick = function() {
     that.tick();
   }, delta)
 }
+
+//refactor to VUE
 const typeWriterEffect = function() {
   const elements = document.getElementsByClassName('typewrite');
   for (let i = 0; i < elements.length; i++) {
@@ -139,38 +141,35 @@ onMounted(() => {
 </script>
 
 <template>
-
-
-  
-  
-  <header class="titleContainer">
-    <h1 id="title">Pete's Skill Sharing Website</h1>
-    <h2>
-    <a 
-    href="" 
-    class="typewrite" 
-    data-period="2000"
-    data-type='["Chat with your friends", "Search for your favorite topics", "Find your new community"]'>
-    <span class="wrap"></span>
-    </a>
-    </h2>
-    <hr id ="titleRow">
+  <header>
+    <nav>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Talks</a></li>
+      </ul>
+      </nav>
   </header>
+  <section>
+      <div class="titleContainer">
+        <h1 id="title">Pete's Skill Sharing Website</h1>
+        
+        <hr id ="titleRow">
+      </div>
+    </section>
   
 
 
 <div class="userNamesContainer">
-  <header>
     <h2>The current user is {{ currentUser }}</h2>
-  </header>
   <div class="inputField">
     <label for="userField">Your name: </label>
     <input id="userField" v-model="userField" @keydown.enter="setUserName" />
   </div>
 </div>
 
-
-<div 
+<section>
+  <div 
 class="userRadioButtons"
 @mouseover="test">
     <label for="users">Usernames:  </label>
@@ -186,13 +185,14 @@ class="userRadioButtons"
       >
     </td>
   </div>
-
-
+</section>
+<article>
 <AsyncTalks 
   :talks="talks"
   :user="currentUser"
   :users="userList">
-</AsyncTalks>
+</AsyncTalks></article>
+
 
 
 
@@ -201,6 +201,75 @@ class="userRadioButtons"
 
 
 <style scoped>
+header {
+
+  color: white;
+  /* background-color: orange; */
+  padding: 10px;
+  background: orange;
+
+}
+
+header::after {
+  content: '';
+  display: table;
+  clear: both;
+  
+}
+
+nav {
+  float: right;
+  
+}
+
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* border: solid; */
+  padding-right: 50px
+}
+nav li {
+  padding-top: 25px;
+  display: inline-block;
+  margin-left: 150px;
+  position: relative;
+}
+nav li:hover {
+  color: blue
+}
+
+nav a::before {
+  content: '';
+  display: block;
+  height: 5px;
+  width: calc(100% - 50px);
+  width: 0;
+  position: absolute;
+  background-color: blue;
+  top: 0;
+  left: 0;
+  transition: all ease-in-out 250ms;
+}
+
+nav li:hover a::before {
+  width: 100%;
+}
+
+nav a {
+  text-decoration: none;
+  color: white;
+  text-transform: uppercase;
+  font-size: 14px;
+
+}
+nav a:hover {
+  color: blue
+}
+nav a:hover::before {
+  width: 100%;
+
+}
 .postgresContainer {
   display: flex;
   position: absolute;
