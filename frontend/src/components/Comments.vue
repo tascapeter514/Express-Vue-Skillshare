@@ -25,18 +25,17 @@ function handleNewComment() {
 }
 
 
-console.log("comments:", props.comments)
+
 
 </script>
 <template>
-<div>
+
       <div v-for="comment in props.comments" :key="comment.presenter">
-        <div v-if="props.comments.length > 0">
+        <div v-if="comment.message">
           <strong> {{ comment.presenter }}</strong> : {{ comment.message }}
         </div>
-        
       </div>
-      </div>
+
 <div>
     <form @submit.prevent="handleNewComment">
     <input v-model="newComment">

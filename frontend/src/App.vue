@@ -1,5 +1,7 @@
 <script setup>
 import {  onMounted, defineAsyncComponent, ref } from "vue";
+import Typewriter from './components/Typewriter.vue'
+
 let currentUser = localStorage.getItem('user') || "Anon";
 const talks = ref()
 const userList = ref(["All"]);
@@ -72,56 +74,11 @@ const updateTalks = (newTalks) => {
 
 
 
-const TxtType = function(el, toRotate, period) {
-  this.toRotate = toRotate;
-  this.el = el;
-  this.loopNum = 0;
-  this.period = parseInt(period, 10) || 2000;
-  this.txt = '';
-  this.tick();
-  this.isDeleting = false;
-}
 
-TxtType.prototype.tick = function() {
-  const i = this.loopNum % this.toRotate.length;
-  // console.log("current loop iteration:", this.loopNum,"length of the string array:", this.toRotate.length, "remainder or index:", i)
-  const fullTxt = this.toRotate[i];
-  if (this.isDeleting) {
-    this.txt = fullTxt.substring(0, this.txt.length - 1)
-  } else {
-    this.txt = fullTxt.substring(0, this.txt.length + 1)
-  }
-  this.el.innerHTML = '<span class="wrap">'+this.txt+'</span>';
-  let that = this;
-  let delta = 200 - Math.random() * 100;
 
-  if (this.isDeleting) { delta/= 2; }
 
-  if (!this.isDeleting && this.txt === fullTxt) {
-    delta = this.period;
-    this.isDeleting = true;
-  } else if (this.isDeleting && this.txt === '') {
-    this.isDeleting = false;
-    this.loopNum++;
-    delta = 500;
-  }
 
-  setTimeout(function () {
-    that.tick();
-  }, delta)
-}
 
-//refactor to VUE
-const typeWriterEffect = function() {
-  const elements = document.getElementsByClassName('typewrite');
-  for (let i = 0; i < elements.length; i++) {
-    let toRotate = elements[i].getAttribute('data-type');
-    let period = elements[i].getAttribute('data-period');
-    if (toRotate) {
-      new TxtType(elements[i], JSON.parse(toRotate), period)
-    }
-  }
-}
 
 
 
@@ -130,7 +87,6 @@ const typeWriterEffect = function() {
 onMounted(() => {
 
   pollTalks(updateTalks)
-  // typeWriterEffect()
   
 
 
@@ -153,6 +109,7 @@ onMounted(() => {
   <section>
       <div class="titleContainer">
         <h1 id="title">Pete's Skill Sharing Website</h1>
+        <Typewriter></Typewriter>
         
         <hr id ="titleRow">
       </div>
@@ -202,11 +159,12 @@ class="userRadioButtons"
 
 <style scoped>
 header {
+  border: thick;
 
   color: white;
   /* background-color: orange; */
   padding: 10px;
-  background: orange;
+  /* background: orange; */
 
 }
 
@@ -236,7 +194,7 @@ nav li {
   position: relative;
 }
 nav li:hover {
-  color: blue
+  color: orange;
 }
 
 nav a::before {
@@ -246,7 +204,7 @@ nav a::before {
   width: calc(100% - 50px);
   width: 0;
   position: absolute;
-  background-color: blue;
+  background-color: orange;
   top: 0;
   left: 0;
   transition: all ease-in-out 250ms;
@@ -264,64 +222,15 @@ nav a {
 
 }
 nav a:hover {
-  color: blue
+  color: orange;
 }
 nav a:hover::before {
   width: 100%;
 
 }
-.postgresContainer {
-  display: flex;
-  position: absolute;
-  border: solid;
-  color: orange;
-  width: 400px;
-  height: 400px;
-  left: 1500px;
-  overflow: auto;
-  flex-wrap: wrap;
-}
-.talksPostGres {
-  border: orange solid;
-  box-shadow: 15px 15px 15px black;
-  margin: 15px;
-  padding: 15px;
-  border-radius: 50px
-}
-.postgresSubmit {
-  border: orange solid;
-  border-radius: 50px;
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  padding: 10px;
-  top: 600px;
-  position: relative;
-  width: 600px;
-  left: 1100px;
-  box-shadow: 15px 15px 15px black;
-}
 
-.postgresSubmit label {
-  display: block;
-}
-.postgresSubmit input {
-  width: 30em;
-}
-.postgresSubmit h3 {
-  margin-bottom: 0.33em;
-}
-.typewrite {
-  position: absolute;
-  /* left: 100px; */
-  text-decoration: none;
-  font-size: 50px;
-  color: orange !important;
 
-}
-.typewrite > .wrap {
-  color: orange !important;
-}
+
 
 
 .userNamesContainer {
