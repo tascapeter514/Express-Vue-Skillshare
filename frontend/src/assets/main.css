@@ -41,7 +41,10 @@ background: linear-gradient(135deg, #4166D6, #086CB7);
 * {
   color: whitesmoke;
   font-weight: 400;
-  font-family:Arial, Helvetica, sans-serif
+  font-family:Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 

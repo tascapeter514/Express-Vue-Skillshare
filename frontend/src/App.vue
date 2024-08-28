@@ -1,12 +1,16 @@
 <script setup>
 import {  onMounted, defineAsyncComponent, ref, nextTick, watchEffect } from "vue";
 import Typewriter from './components/Typewriter.vue'
+import Carousel from './components/Carousel.vue';
+import Slide from './components/Slide.vue';
+
 
 let currentUser = localStorage.getItem('user') || "Anon";
 const talks = ref()
-const carouselTalks = ref([])
+
 const userList = ref(["All"]);
 const userField = ref('');
+const carouselSlides = ref()
 
 
 
@@ -34,7 +38,7 @@ const toggleUserTalks = (user) => {
   talks.value.forEach((talk) => { 
     talk.toggleTalk = user === "All" || talk.presenter === user;
   })
-}
+}  
 
 function fetchOK(url, options) {
   return fetch(url, options).then(response => {
@@ -73,55 +77,21 @@ const pollTalks = async (update) => {
   }
 }
 const updateTalks = (newTalks) => {
-  talks.value = newTalks
-  carouselTalks.value = newTalks
-  console.log("carousel talks:", carouselTalks.value)
-  return talks.value && carouselTalks.value
+  console.log("new talks:", newTalks)
+  talks.value = newTalks;
+  console.log("update talks and values:", talks.value)
+  carouselSlides.value = newTalks
+  return talks.value && carouselSlides.value
 }
 
-const track = ref(null);
-const slides = ref([])
-const nextButton = ref(null);
-const previousButton = ref(null);
-const dotsNav = ref(null);
-const dots = ref([])
-
-
-const updatedSlides = (slideRefs) => {
-  slides.value = slideRefs;
-  console.log("slide refs:", slides.value)
-}
-
-
-// Use watchEffect to handle refs reactively
-// Use watchEffect to handle refs reactively
-watchEffect(() => {
-  if (nextButton.value && previousButton.value && track.value) {
-    console.log("buttons:", nextButton.value, previousButton.value);
-    console.log("track:", track.value);
-    // Perform any initialization or actions with refs here
-  }
-  if (dotsNav.value) {
-    dots.value = Array.from(dotsNav.value.children)
-    console.log("dotsNav:", dotsNav.value);
-    // Initialize or handle dotsNav here
-  }
-  if (dots.value.length) {
-    console.log("dots:", dots.value);
-    // Initialize or handle dots here
-  }
-});
-
-onMounted(async () => {
-
+onMounted(() => {
   pollTalks(updateTalks);
+})
 
-
-
-
-
-});
-
+watchEffect(() => {
+  console.log("carousel slides:", carouselSlides.value)
+  console.log("talks:", talks.value)
+})
 
 
 
@@ -157,7 +127,7 @@ onMounted(async () => {
         <hr id ="titleRow">
       </div>
     </section>
-  
+
 
 <!-- 
 <div class="userNamesContainer">
@@ -186,39 +156,24 @@ class="userRadioButtons"
     </td>
   </div>
 </section> -->
-<!-- <article> -->
 <!-- <AsyncTalks 
-  :talks="talks"
-  :user="currentUser"
-  :users="userList">
-</AsyncTalks></article> -->
-<section v-if="carouselTalks.length > 0">
-  <div class="carousel">
-    <button class="carousel_button--left" ref="previousButton"><i class="fas fa-arrow-circle-left" id="carousel_leftbutton"></i></button>
-    <div class="carousel_track-container">
-      <ul class="carousel_track" ref="track">
-    
+      :talks="carouselSlides"
+      :user="currentUser"
+      :users="userList">
+      </AsyncTalks> -->
 
-        <CarouselTalk
-          @slidesUpdated="updatedSlides" 
-          :carouselTalks="carouselTalks"></CarouselTalk>
-        
-      </ul>
+
+<Carousel class="carousel" v-slot="{currentSlide}">
+  <Slide v-for="(slide, index) in carouselSlides" :key="index">
+    <div v-show="currentSlide === index + 1" class="slide-info">
+      <CarouselTalk class="carouselTalk" :carouselTalk="slide" :carouselIndex="index"></CarouselTalk>
+
+
+
 
     </div>
-    <button class="carousel_button--right" ref="nextButton"> <i class="fas fa-arrow-circle-right" id="carousel_rightbutton"></i></button>
-    <div class="carousel_nav" ref="dotsNav">
-        <button class="carousel_indicator current-slide"></button>
-        <button class="carousel_indicator"></button>
-        <button class="carousel_indicator"></button>
-    </div>
-
-   
-
-  </div>
-</section>
-
-
+  </Slide>
+</Carousel>
 
 
 
@@ -226,68 +181,29 @@ class="userRadioButtons"
 
 
 <style scoped>
-
 .carousel {
   position: relative;
-  height: 200px;
-  width: 25%;
-  margin: 0 auto;
-
-}
-.carousel_track-container {
+  max-height: 50vh;
+  height: 50vh;
+  max-width: 50vh;
+  width: 50vh;
   border: solid;
+  margin: 0 auto;
+}
+.slide-info {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  max-height: 100%;
   height: 100%;
-  position: relative;
 }
-.carousel_track {
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-.carousel_button--left {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  left: -40px;
-  cursor: pointer;
-  border: 0;
-}
-.carousel_button--right{
-  position: absolute;
-  top: 50%;
-  right: -40px;
-  transform: translateY(-50%);
-  cursor: pointer;
-  border: 0;
-
-}
-.carousel_button--left i {
-  width: 20px
-}
-.carousel_button--right i {
-  width: 20px
+.carouselTalk {
+  min-width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.carousel_nav {
-  /* background: pink; */
-  display: flex;
-  justify-content: center;
-  padding: 10px 0;
-
-}
-.carousel_indicator {
-  border: 0;
-  border-radius: 50%;
-  width: 15px;
-  height: 15px;
-  background: rgba(255,165,0,.3);
-  margin: 0 12px;
-}
-
-.carousel_indicator.current-slide {
-  background: rgba(255, 165, 0, .75)
-}
 
 
 
