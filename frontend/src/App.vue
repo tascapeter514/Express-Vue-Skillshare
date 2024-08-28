@@ -1,12 +1,13 @@
 <script setup>
-import {  onMounted, defineAsyncComponent, ref } from "vue";
+import {  onMounted, defineAsyncComponent, ref, nextTick, watchEffect } from "vue";
 import Typewriter from './components/Typewriter.vue'
 
 let currentUser = localStorage.getItem('user') || "Anon";
 const talks = ref()
-const carouselTalks = ref()
+const carouselTalks = ref([])
 const userList = ref(["All"]);
 const userField = ref('');
+
 
 
 
@@ -78,16 +79,61 @@ const updateTalks = (newTalks) => {
   return talks.value && carouselTalks.value
 }
 
+const track = ref(null);
+const slides = ref([])
+const nextButton = ref(null);
+const previousButton = ref(null);
+const dotsNav = ref(null);
+const dots = ref([])
+
+
+const updatedSlides = (slideRefs) => {
+  slides.value = slideRefs;
+  console.log("slide refs:", slides.value)
+}
+
+
+// Use watchEffect to handle refs reactively
+// Use watchEffect to handle refs reactively
+watchEffect(() => {
+  if (nextButton.value && previousButton.value && track.value) {
+    console.log("buttons:", nextButton.value, previousButton.value);
+    console.log("track:", track.value);
+    // Perform any initialization or actions with refs here
+  }
+  if (dotsNav.value) {
+    dots.value = Array.from(dotsNav.value.children)
+    console.log("dotsNav:", dotsNav.value);
+    // Initialize or handle dotsNav here
+  }
+  if (dots.value.length) {
+    console.log("dots:", dots.value);
+    // Initialize or handle dots here
+  }
+});
+
+onMounted(async () => {
+
+  pollTalks(updateTalks);
 
 
 
-onMounted(() => {
-
-  pollTalks(updateTalks)
-  
 
 
-})
+});
+
+
+
+
+
+
+
+
+
+
+//when i click left, move slides to the left
+//when i click right, move slides to the right
+//when i click the nav indicators, move to that slide
 
 
 
@@ -146,29 +192,22 @@ class="userRadioButtons"
   :user="currentUser"
   :users="userList">
 </AsyncTalks></article> -->
-<section>
+<section v-if="carouselTalks.length > 0">
   <div class="carousel">
-    <button class="carousel_button--left"><i class="fas fa-arrow-circle-left" id="carousel_leftbutton"></i></button>
+    <button class="carousel_button--left" ref="previousButton"><i class="fas fa-arrow-circle-left" id="carousel_leftbutton"></i></button>
     <div class="carousel_track-container">
-      <ul class="carousel_track">
-        <!-- <li class="carousel_slide">
-          <img class="carousel_image" src="@/assets/green-abstract-background-vector-bg5.jpg">
-        </li>
-        <li class="carousel_slide">
-          <img class="carousel_image" src="@/assets/green-abstract-background-vector-bg5.jpg">
-        </li>
-        <li class="carousel_slide">
-          <img class="carousel_image" src="@/assets/green-abstract-background-vector-bg5.jpg">
-        </li> -->
+      <ul class="carousel_track" ref="track">
+    
 
-        <CarouselTalk 
+        <CarouselTalk
+          @slidesUpdated="updatedSlides" 
           :carouselTalks="carouselTalks"></CarouselTalk>
         
       </ul>
 
     </div>
-    <button class="carousel_button--right"> <i class="fas fa-arrow-circle-right" id="carousel_rightbutton"></i></button>
-    <div class="carousel_nav">
+    <button class="carousel_button--right" ref="nextButton"> <i class="fas fa-arrow-circle-right" id="carousel_rightbutton"></i></button>
+    <div class="carousel_nav" ref="dotsNav">
         <button class="carousel_indicator current-slide"></button>
         <button class="carousel_indicator"></button>
         <button class="carousel_indicator"></button>
@@ -242,12 +281,12 @@ class="userRadioButtons"
   border-radius: 50%;
   width: 15px;
   height: 15px;
-  background: rgba(0,0,0,.3);
+  background: rgba(255,165,0,.3);
   margin: 0 12px;
 }
 
 .carousel_indicator.current-slide {
-  background: rgba(0, 0, 0, .75)
+  background: rgba(255, 165, 0, .75)
 }
 
 

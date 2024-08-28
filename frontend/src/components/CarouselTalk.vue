@@ -1,4 +1,6 @@
 <script setup>
+import { onMounted, ref } from 'vue';
+
 
 const props = defineProps({
     carouselTalks: Array,
@@ -6,12 +8,22 @@ const props = defineProps({
 
 })
 
+const emit = defineEmits(['slidesUpdated'])
+
+
+const slidesRefs = ref([])
+
+onMounted(() => {
+    console.log("slides:", slidesRefs.value)
+    emit('slidesUpdated', slidesRefs.value)
+})
 
 
 </script>
 
 <template>
-<li class="carousel_slide" v-for="(carouselTalk, index) in carouselTalks" 
+<li class="carousel_slide" v-for="(carouselTalk, index) in carouselTalks"
+    ref="slidesRefs" 
     :key="index">
 
     <div class="carousel_talk">
@@ -36,6 +48,8 @@ const props = defineProps({
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border: orange solid;
+    box-shadow: 15px 15px 15px black;
 
 
 }
