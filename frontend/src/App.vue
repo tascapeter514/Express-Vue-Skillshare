@@ -169,7 +169,7 @@ class="userRadioButtons"
     </div>
     <button class="carousel_button--right"> <i class="fas fa-arrow-circle-right" id="carousel_rightbutton"></i></button>
     <div class="carousel_nav">
-        <button class="carousel_indicator"></button>
+        <button class="carousel_indicator current-slide"></button>
         <button class="carousel_indicator"></button>
         <button class="carousel_indicator"></button>
     </div>
@@ -205,6 +205,51 @@ class="userRadioButtons"
   margin: 0;
   list-style: none;
 }
+
+.carousel_button--left {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: -40px;
+  cursor: pointer;
+  border: 0;
+}
+.carousel_button--right{
+  position: absolute;
+  top: 50%;
+  right: -40px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  border: 0;
+
+}
+.carousel_button--left i {
+  width: 20px
+}
+.carousel_button--right i {
+  width: 20px
+}
+
+.carousel_nav {
+  /* background: pink; */
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+
+}
+.carousel_indicator {
+  border: 0;
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  background: rgba(0,0,0,.3);
+  margin: 0 12px;
+}
+
+.carousel_indicator.current-slide {
+  background: rgba(0, 0, 0, .75)
+}
+
 
 
 

@@ -34,7 +34,8 @@ const props = defineProps({
 <style scoped>
 .carousel_talk {
     width: 100%;
-    height: 100%
+    height: 100%;
+    object-fit: cover;
 
 
 }
