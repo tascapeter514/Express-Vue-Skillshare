@@ -4,6 +4,7 @@ import Typewriter from './components/Typewriter.vue'
 
 let currentUser = localStorage.getItem('user') || "Anon";
 const talks = ref()
+const carouselTalks = ref()
 const userList = ref(["All"]);
 const userField = ref('');
 
@@ -11,6 +12,10 @@ const userField = ref('');
 
 const AsyncTalks = defineAsyncComponent(() => 
   import('/src/components/Talks.vue')
+)
+
+const CarouselTalk = defineAsyncComponent(() => 
+  import('/src/components/CarouselTalk.vue')
 )
 
 
@@ -68,18 +73,10 @@ const pollTalks = async (update) => {
 }
 const updateTalks = (newTalks) => {
   talks.value = newTalks
-  return talks.value
+  carouselTalks.value = newTalks
+  console.log("carousel talks:", carouselTalks.value)
+  return talks.value && carouselTalks.value
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -116,7 +113,7 @@ onMounted(() => {
     </section>
   
 
-
+<!-- 
 <div class="userNamesContainer">
     <h2>The current user is {{ currentUser }}</h2>
   <div class="inputField">
@@ -142,13 +139,45 @@ class="userRadioButtons"
       >
     </td>
   </div>
-</section>
-<article>
-<AsyncTalks 
+</section> -->
+<!-- <article> -->
+<!-- <AsyncTalks 
   :talks="talks"
   :user="currentUser"
   :users="userList">
-</AsyncTalks></article>
+</AsyncTalks></article> -->
+<section>
+  <div class="carousel">
+    <button class="carousel_button--left"><i class="fas fa-arrow-circle-left" id="carousel_leftbutton"></i></button>
+    <div class="carousel_track-container">
+      <ul class="carousel_track">
+        <!-- <li class="carousel_slide">
+          <img class="carousel_image" src="@/assets/green-abstract-background-vector-bg5.jpg">
+        </li>
+        <li class="carousel_slide">
+          <img class="carousel_image" src="@/assets/green-abstract-background-vector-bg5.jpg">
+        </li>
+        <li class="carousel_slide">
+          <img class="carousel_image" src="@/assets/green-abstract-background-vector-bg5.jpg">
+        </li> -->
+
+        <CarouselTalk 
+          :carouselTalks="carouselTalks"></CarouselTalk>
+        
+      </ul>
+
+    </div>
+    <button class="carousel_button--right"> <i class="fas fa-arrow-circle-right" id="carousel_rightbutton"></i></button>
+    <div class="carousel_nav">
+        <button class="carousel_indicator"></button>
+        <button class="carousel_indicator"></button>
+        <button class="carousel_indicator"></button>
+    </div>
+
+   
+
+  </div>
+</section>
 
 
 
@@ -158,6 +187,28 @@ class="userRadioButtons"
 
 
 <style scoped>
+
+.carousel {
+  position: relative;
+  height: 200px;
+  width: 25%;
+  margin: 0 auto;
+
+}
+.carousel_track-container {
+  border: solid;
+  height: 100%;
+  position: relative;
+}
+.carousel_track {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+
+
+
 header {
   border: thick;
 
