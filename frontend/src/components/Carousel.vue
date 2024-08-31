@@ -1,25 +1,37 @@
 <script setup>
-import { ref, onMounted, nextTick, computed } from 'vue'
+import { ref, onMounted, nextTick, computed, watchEffect } from 'vue'
 const currentSlide = ref(1)
-const slides = ref([])
-const getSlideCount = ref(0)
+// const slides = ref([])
+let getSlideCount = ref(0)
 
 
 
-//mock function to simulate async data loading
 
-const updateSlideCount = async () => {
-  await nextTick(); // Wait for DOM updates
-  getSlideCount.value = document.querySelectorAll('.slide').length; // Count slides
-  console.log('slide count:', getSlideCount.value); // Log for debugging
-}
+const props = defineProps(
+    {
+    talkSlides: Array,
+    navigation: Boolean,
+    pagination: Boolean,
+    startAutoPlay: Boolean,
+    timeout: Number
+})
+
+const paginationEnabled = ref(props.pagination === undefined ? true : props.pagination);
+const navEnabled = ref(props.navigation === undefined ? true : props.navigation);
+const autoPlayEnabled = ref(props.startAutoPlay === undefined ? true : props.startAutoPlay);
+const timeoutDuration = ref(props.timeout === undefined ? 5000 : props.timeout);
+
+
+
 
 
 
 //next slide
 
 const nextSlide = () => {
+
     if (currentSlide.value === getSlideCount.value) {
+
         currentSlide.value = 1;
         return;
     }
@@ -30,17 +42,42 @@ const nextSlide = () => {
 
 const prevSlide = () => {
     if (currentSlide.value === 1) {
-        currentSlide.value = 1;
+        currentSlide.value = getSlideCount.value;
         return;
     }
     currentSlide.value -= 1;
 }
 
+const goToSlide = (index)  => {
+    currentSlide.value = index + 1;
+    
+}
 
+//autoplay
 
-onMounted(async () => {
-    await updateSlideCount()
+const autoPlay = () => {
+    setInterval(() => {
+        nextSlide()
+
+    }, timeoutDuration.value)
+
+}
+
+if (autoPlayEnabled.value) {
+    autoPlay();
+}
+
+watchEffect(() => {
+//   console.log("carousel slides:", carouselSlides.value)
+//   console.log("talks:", talks.value)
+  if (props.talkSlides) {
+        console.log("talk slides:", props.talkSlides)
+        getSlideCount.value = props.talkSlides.length;
+        console.log("getSlideCount on mounted:", getSlideCount)
+    } 
 })
+
+
 </script>
 
 <template>
@@ -48,7 +85,7 @@ onMounted(async () => {
         <slot :currentSlide="currentSlide"></slot>
 
         <!--Navigation-->
-        <div class="navigate">
+        <div class="navigate" v-if="navEnabled">
             <div class="toggle-page left">
                 <i @click="prevSlide" class="fa-solid fa-chevron-left"></i>
             </div>
@@ -58,8 +95,12 @@ onMounted(async () => {
         </div>
 
         <!--Pagination-->
-        <div class="pagination" v-if="getSlideCount > 0">
-            <span v-for="(slide, index) in getSlideCount" :key="index" :class="{active : index + 1 === currentSlide}">
+        <div class="pagination" v-if="paginationEnabled">
+            <span
+            @click="goToSlide(index)"
+             v-for="(slide, index) in getSlideCount"
+            :key="index"
+            :class="{active : index + 1 === currentSlide}">
 
             
             </span>

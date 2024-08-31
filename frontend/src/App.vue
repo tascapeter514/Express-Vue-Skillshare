@@ -91,12 +91,9 @@ onMounted(() => {
 watchEffect(() => {
   console.log("carousel slides:", carouselSlides.value)
   console.log("talks:", talks.value)
+
+
 })
-
-
-
-
-
 
 
 
@@ -104,6 +101,10 @@ watchEffect(() => {
 //when i click left, move slides to the left
 //when i click right, move slides to the right
 //when i click the nav indicators, move to that slide
+
+
+
+
 
 
 
@@ -163,10 +164,16 @@ class="userRadioButtons"
       </AsyncTalks> -->
 
 
-<Carousel class="carousel" v-slot="{currentSlide}">
-  <Slide v-for="(slide, index) in carouselSlides" :key="index">
+<Carousel
+ :navigation="true"
+ :pagination="true"
+ :startAutoPlay="true"
+ :timeout="5000" 
+ class="carousel" 
+ v-slot="{currentSlide}" :talkSlides="carouselSlides">
+  <Slide v-for="(slide, index) in carouselSlides" :key="index" class="talkSlide">
     <div v-show="currentSlide === index + 1" class="slide-info">
-      <CarouselTalk class="carouselTalk" :carouselTalk="slide" :carouselIndex="index"></CarouselTalk>
+      <CarouselTalk class="carouselTalk" :carouselTalk="slide" :carouselIndex="index" :user="currentUser"></CarouselTalk>
 
 
 
@@ -187,7 +194,7 @@ class="userRadioButtons"
   height: 50vh;
   max-width: 50vh;
   width: 50vh;
-  border: solid;
+
   margin: 0 auto;
 }
 .slide-info {
@@ -197,11 +204,15 @@ class="userRadioButtons"
   width: 100%;
   max-height: 100%;
   height: 100%;
+
+
 }
+
 .carouselTalk {
   min-width: 100%;
   height: 100%;
   object-fit: cover;
+
 }
 
 
