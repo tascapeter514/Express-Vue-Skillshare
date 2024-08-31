@@ -3,24 +3,25 @@ import TalkCard from './TalkCard.vue'
 import { ref, computed, watchEffect } from 'vue';
 
 const props = defineProps({
-    carouselTalks: Array,
-    carouselUser: String,
+    carouselTalks: Array
 })
 
 
-
-// watchEffect(() => {
-//   console.log("carousel talks:", props.carouselTalks)
-
-
-
-// })
-
-// console.log('carousel talks global:', props.carouselTalks)
-
+let currentUser = localStorage.getItem('user') || "Anon";
 const filtersVisible = ref(false);
+const currentUserVisible = ref(false);
+const talkFormVisible = ref(false);
 const query = ref('');
 const searchQuery = ref('');
+const userField = ref('')
+
+function setUserName() {
+    currentUser = userField.value;
+    if (event.key == "Enter") {
+        localStorage.setItem("user", currentUser)
+    }
+    userField.value = "";
+}
 
 const filteredTalks = computed(() => {
     if (props.carouselTalks) {
@@ -57,7 +58,39 @@ const filteredTalks = computed(() => {
                 <button @click="filtersVisible = !filtersVisible">
                     {{ filtersVisible ? 'Hide Filters' : 'Show Filters' }}
                 </button>
+                <button @click="currentUserVisible = !currentUserVisible">
+                    {{ currentUserVisible ? 'Hide Current User' : 'Show Current User' }}
+                </button>
+                <button @click="talkFormVisible = !talkFormVisible">
+                    {{ talkFormVisible ? 'Hide Talk Form' : 'Show Talk Form' }}
+                
+                </button>
             </div>
+
+            <Transition>
+                <div class="currentUserForm" v-show="currentUserVisible">
+                    <h2>The current user is {{ currentUser }} </h2>
+                    <div class="inputField">
+                        <label for="userField">Your name: </label>
+                        <input id="userField" v-model="userField" @keydown.enter="setUserName">
+                    </div>
+                </div>
+            </Transition>
+            
+
+            <Transition>
+                <div class="talkSubmitForm" v-show="talkFormVisible">
+                    <form @submit.prevent="addNewTalk">
+                        <h3>Submit a Talk</h3>
+                        <label for="title">Title: </label>
+                        <input v-model="talkTitle">
+                        <label for="summary">Summary: </label>
+                        <input v-model="talkSummary">
+                        <button type="submit">Submit</button>
+                    </form>
+                </div>
+                
+            </Transition>
 
             <Transition>
                 <div v-show="filtersVisible" class="headers-filters">
@@ -72,7 +105,6 @@ const filteredTalks = computed(() => {
                         </button>
                         <!-- <button>Title</button> -->
                     </div>
-                
                 </div>
             </Transition>
         </header>
@@ -102,6 +134,31 @@ main {
     position: relative;
 }
 
+.talkSubmitForm {
+    border: orange solid;
+    border-radius: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    width: 100%;
+    height: 100%;
+    box-shadow: 15px 15px 15px black;
+    position: relative;
+}
+.currentUserForm {
+    border: orange solid;
+    border-radius: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    width: 100%;
+    height: 100%;
+    box-shadow: 15px 15px 15px black;
+    position: relative;
+}
+
 header {
     margin-bottom: 2rem;
     display: flex;
@@ -112,6 +169,19 @@ header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+}
+.headers-filters {
+    border: orange solid;
+    border-radius: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    width: 100%;
+    height: 100%;
+    box-shadow: 15px 15px 15px black;
+    position: relative;
+
 }
 
 .headers-filters input {

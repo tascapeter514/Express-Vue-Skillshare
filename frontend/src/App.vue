@@ -5,7 +5,6 @@ import TransitionGroup1 from './components/TransitionGroup.vue'
 
 
 
-let currentUser = localStorage.getItem('user') || "Anon";
 
 
 
@@ -112,18 +111,8 @@ watchEffect(() => {
       </div>
     </section>
 
-
-
-
-
-      <!-- <CarouselTalk
-      v-for="(carouselSlide, index) of carouselSlides" 
-      class="carouselTalk" 
-      :carouselTalk="carouselSlide" 
-      :carouselIndex="index" 
-      :user="currentUser"></CarouselTalk> -->
   <main>
-    <TransitionGroup1 :carouselTalks="carouselSlides" :carouselUser="currentUser">
+    <TransitionGroup1 :carouselTalks="carouselSlides">
 
     </TransitionGroup1>
   </main>
