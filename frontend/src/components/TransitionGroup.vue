@@ -83,16 +83,17 @@ const postTalk = () => {
         <header>
             <div class="header-flex">
                 <h1>Talk Grid</h1>
-                <button @click="filtersVisible = !filtersVisible">
-                    {{ filtersVisible ? 'Hide Filters' : 'Show Filters' }}
-                </button>
-                <button @click="currentUserVisible = !currentUserVisible">
-                    {{ currentUserVisible ? 'Hide Current User' : 'Show Current User' }}
-                </button>
-                <button @click="talkFormVisible = !talkFormVisible">
-                    {{ talkFormVisible ? 'Hide Talk Form' : 'Show Talk Form' }}
-                
-                </button>
+                    <div class="header-flex_buttons">
+                        <button @click="filtersVisible = !filtersVisible" :class="{ active: filtersVisible }">
+                            {{ filtersVisible ? 'Hide Filters' : 'Show Filters' }}
+                        </button>
+                        <button @click="currentUserVisible = !currentUserVisible" :class="{ active: currentUserVisible }">
+                            {{ currentUserVisible ? 'Hide Current User' : 'Show Current User' }}
+                        </button>
+                        <button @click="talkFormVisible = !talkFormVisible" :class=" { active: talkFormVisible }">
+                            {{ talkFormVisible ? 'Hide Submit Form' : 'Show Submit Form' }}
+                        </button>
+                    </div>
             </div>
 
             <Transition>
@@ -195,9 +196,19 @@ header {
 }
 .header-flex {
     display: flex;
-    align-items: center;
+    align-items: center;  
     justify-content: space-between;
 }
+.header-flex_buttons {
+    display: flex;
+
+}
+
+
+.header-flex_buttons button.active {
+    background-color: blue;
+    color: white;
+} 
 .headers-filters {
     border: orange solid;
     border-radius: 50px;
@@ -211,6 +222,7 @@ header {
     position: relative;
 
 }
+
 
 .headers-filters input {
     height: 50px;
@@ -255,6 +267,7 @@ h1 {
 .talk-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
 
 }
 
@@ -291,6 +304,7 @@ input {
 .list-leave-to {
     opacity: 0;
     transform: translateY(10px)
+    
 }
 
 /* Adding some styles to the exit transition class can make the animation smoother */

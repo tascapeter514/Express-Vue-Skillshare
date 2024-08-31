@@ -57,14 +57,15 @@ const deleteTalk = (talkTitle) => {
 
 .talk {
     padding: 30px;
-    margin-right: 5px;
+    margin-right: 10px;
     border-radius: 50px;
     position: relative;
     background-color: #4166D6;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    /* background: #fff; */
+
+
     border: orange solid;
     box-shadow: 15px 15px 15px black;
     gap: 1rem;
@@ -99,7 +100,7 @@ const deleteTalk = (talkTitle) => {
 }
 
 .talk:hover {
-    transform: scale(1.15) translateY(-30px);
+    transform: scale(1.15) translateY(-30px) translateX(-20px);
     box-shadow: 3px 2px 25px rgba(2, 129, 255, .03);
     /* background: orange; */
     transition: 1s ease;
