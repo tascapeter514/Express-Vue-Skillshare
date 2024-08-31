@@ -1,44 +1,28 @@
 <script setup>
 import {  onMounted, defineAsyncComponent, ref, nextTick, watchEffect } from "vue";
 import Typewriter from './components/Typewriter.vue'
-import Carousel from './components/Carousel.vue';
-import Slide from './components/Slide.vue';
+import TransitionGroup1 from './components/TransitionGroup.vue'
+
 
 
 let currentUser = localStorage.getItem('user') || "Anon";
-const talks = ref()
 
-const userList = ref(["All"]);
-const userField = ref('');
+
+
 const carouselSlides = ref()
 
 
 
 
-const AsyncTalks = defineAsyncComponent(() => 
-  import('/src/components/Talks.vue')
-)
+
 
 const CarouselTalk = defineAsyncComponent(() => 
   import('/src/components/CarouselTalk.vue')
 )
 
 
-function setUserName() {
-  currentUser = userField.value;
-  if (event.key == "Enter") {
-    localStorage.setItem("user", currentUser)
-  }
-  userField.value = ""; 
-}
 
 
-
-const toggleUserTalks = (user) => {
-  talks.value.forEach((talk) => { 
-    talk.toggleTalk = user === "All" || talk.presenter === user;
-  })
-}  
 
 function fetchOK(url, options) {
   return fetch(url, options).then(response => {
@@ -78,10 +62,9 @@ const pollTalks = async (update) => {
 }
 const updateTalks = (newTalks) => {
   console.log("new talks:", newTalks)
-  talks.value = newTalks;
-  console.log("update talks and values:", talks.value)
+
   carouselSlides.value = newTalks
-  return talks.value && carouselSlides.value
+  return carouselSlides.value
 }
 
 onMounted(() => {
@@ -90,7 +73,7 @@ onMounted(() => {
 
 watchEffect(() => {
   console.log("carousel slides:", carouselSlides.value)
-  console.log("talks:", talks.value)
+
 
 
 })
@@ -130,57 +113,28 @@ watchEffect(() => {
     </section>
 
 
-<!-- 
-<div class="userNamesContainer">
-    <h2>The current user is {{ currentUser }}</h2>
-  <div class="inputField">
-    <label for="userField">Your name: </label>
-    <input id="userField" v-model="userField" @keydown.enter="setUserName" />
-  </div>
-</div>
-
-<section>
-  <div 
-class="userRadioButtons"
-@mouseover="test">
-    <label for="users">Usernames:  </label>
-
-    <td v-for="(user, index) in userList" :key="index"> 
-      {{ user }}
-      <input
-        type="radio"
-        id="index"
-        :value="currentUser"
-        name="users"
-        @change="toggleUserTalks(user)"
-      >
-    </td>
-  </div>
-</section> -->
-<!-- <AsyncTalks 
-      :talks="carouselSlides"
-      :user="currentUser"
-      :users="userList">
-      </AsyncTalks> -->
 
 
-<Carousel
- :navigation="true"
- :pagination="true"
- :startAutoPlay="true"
- :timeout="5000" 
- class="carousel" 
- v-slot="{currentSlide}" :talkSlides="carouselSlides">
-  <Slide v-for="(slide, index) in carouselSlides" :key="index" class="talkSlide">
-    <div v-show="currentSlide === index + 1" class="slide-info">
-      <CarouselTalk class="carouselTalk" :carouselTalk="slide" :carouselIndex="index" :user="currentUser"></CarouselTalk>
+
+      <!-- <CarouselTalk
+      v-for="(carouselSlide, index) of carouselSlides" 
+      class="carouselTalk" 
+      :carouselTalk="carouselSlide" 
+      :carouselIndex="index" 
+      :user="currentUser"></CarouselTalk> -->
+  <main>
+    <TransitionGroup1 :carouselTalks="carouselSlides" :carouselUser="currentUser">
+
+    </TransitionGroup1>
+  </main>
+
+      
 
 
 
 
-    </div>
-  </Slide>
-</Carousel>
+
+
 
 
 
@@ -188,32 +142,8 @@ class="userRadioButtons"
 
 
 <style scoped>
-.carousel {
-  position: relative;
-  max-height: 50vh;
-  height: 50vh;
-  max-width: 50vh;
-  width: 50vh;
-
-  margin: 0 auto;
-}
-.slide-info {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  max-height: 100%;
-  height: 100%;
 
 
-}
-
-.carouselTalk {
-  min-width: 100%;
-  height: 100%;
-  object-fit: cover;
-
-}
 
 
 
