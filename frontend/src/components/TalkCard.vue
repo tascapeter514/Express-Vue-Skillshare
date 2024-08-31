@@ -3,7 +3,7 @@
         <div class="flex">
             <h5 class="card-text_title">
                 {{ carouselTalk.title }}
-                <button>Remove</button>
+                <button @click="deleteTalk(carouselTalk.title)">Remove</button>
             </h5>
             <div class="card-text_presenter">
                 by <strong>{{ carouselTalk.presenter }}</strong>
@@ -17,7 +17,7 @@
         <!-- Add Comments Here -->
         <AsyncComments
         :comments="carouselTalk.comments"
-        :presenter="props.CarouselUser"
+        :presenter="props.carouselUser"
         :title="carouselTalk.title"></AsyncComments>
     </div>
 
@@ -39,7 +39,17 @@ const AsyncComments = defineAsyncComponent(() =>
     import('/src/components/Comments.vue')
 )
 
-// console.log("carousel talk:", props.carouselTalk)
+const deleteTalk = (talkTitle) => {
+  const encodedTitle = encodeURIComponent(talkTitle)
+  // console.log("JSON title:", talkTitle)
+  // console.log("encoded title:", encodedTitle)
+  fetch(`/talks/database/${encodedTitle}`, {
+    method: "DELETE",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  })
+}
 
 </script>
 

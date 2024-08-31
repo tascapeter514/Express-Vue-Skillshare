@@ -30,7 +30,7 @@ function handleNewComment() {
 </script>
 <template>
 
-      <div v-for="comment in props.comments" :key="comment.presenter">
+      <div v-for="(comment, index) in props.comments" :key="index">
         <div v-if="comment.message">
           <strong> {{ comment.presenter }}</strong> : {{ comment.message }}
         </div>

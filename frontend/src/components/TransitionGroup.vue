@@ -15,6 +15,10 @@ const query = ref('');
 const searchQuery = ref('');
 const userField = ref('')
 
+const talkTitle = ref('');
+const talkSummary = ref('');
+
+
 function setUserName() {
     currentUser = userField.value;
     if (event.key == "Enter") {
@@ -48,6 +52,30 @@ const filteredTalks = computed(() => {
     }
 })
 
+const postTalk = () => {
+  console.log("input success:", talkTitle.value, talkSummary.value);
+  fetch('/talks/database/addTalk', {
+    method: "PUT",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      title: talkTitle.value,
+      summary: talkSummary.value,
+      presenter: currentUser,
+      comments: [],
+    }) 
+  });
+//   const repeatName = props.users.find((user) => user == props.user);
+//   if (!repeatName) {
+//     props.users.push(props.user);
+//   }
+  talkTitle.value = "";
+  talkSummary.value = "";
+}
+
+
+
 </script>
 
 <template>
@@ -80,7 +108,7 @@ const filteredTalks = computed(() => {
 
             <Transition>
                 <div class="talkSubmitForm" v-show="talkFormVisible">
-                    <form @submit.prevent="addNewTalk">
+                    <form @submit.prevent="postTalk">
                         <h3>Submit a Talk</h3>
                         <label for="title">Title: </label>
                         <input v-model="talkTitle">
@@ -116,7 +144,7 @@ const filteredTalks = computed(() => {
                 :key="index"
                 :carouselTalk="carouselTalk"
                 :carouselIndex="index"
-                :carouselUser="carouselUser"
+                :carouselUser="currentUser"
                 ></TalkCard>
             </TransitionGroup>
         </div>
