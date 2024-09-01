@@ -6,18 +6,9 @@ const props = defineProps({
     carouselTalks: Array
 })
 
-
+//current user and user input variables
 let currentUser = localStorage.getItem('user') || "Anon";
-const filtersVisible = ref(false);
-const currentUserVisible = ref(false);
-const talkFormVisible = ref(false);
-const query = ref('');
-const searchQuery = ref('');
 const userField = ref('')
-
-const talkTitle = ref('');
-const talkSummary = ref('');
-
 
 function setUserName() {
     currentUser = userField.value;
@@ -27,28 +18,57 @@ function setUserName() {
     userField.value = "";
 }
 
+
+
+//filter and query references
+const filtersVisible = ref(false);
+const currentUserVisible = ref(false);
+const talkFormVisible = ref(false);
+const query = ref('');
+const searchQuery = ref('');
+
+//talk form input variables
+const talkTitle = ref('');
+const talkSummary = ref('');
+
+
+
 const filteredTalks = computed(() => {
     if (props.carouselTalks) {
         console.log("prop talks:", props.carouselTalks)
         let carouselTalks = props.carouselTalks;
-        console.log("query value:", query.value)
+        // console.log("query value:", query.value)
         const filteredTalks = carouselTalks.filter(carouselTalk => JSON.stringify(carouselTalk).includes(query.value))
         if (query.value == 'comments') {
             console.log("commment check")
             console.log("comment carousel filtered talks:", filteredTalks)
             const talksWithComments = filteredTalks.filter((filteredTalk) => {
-                console.log("carousel talk in filter:", filteredTalk.title);
-                console.log("carousel filtered comments:", filteredTalk.comments.length)
-                return filteredTalk.comments.length > 1
+                // console.log("carousel talk in filter:", filteredTalk);
+                // console.log("carousel filtered comments:", filteredTalk.comments.length)
+                // console.log("filtered talks presenter:", filteredTalk.comments[0].presenter)
+
+                if (filteredTalk.comments[0].presenter) {
+                    console.log("filtered comment check")
+                    return filteredTalk.comments.length > 0;
+                    
+                    // return filteredTalks.comments.length > 0;
+                } else {
+                    return
+                }
             });
             console.log("talks with comments:", talksWithComments)
+            return talksWithComments;
+        } else if (query.value == currentUser) {
+            // console.log("current user check")
+            // console.log("talk presenter:", carouselTalks[0].presenter)
+            const currentUserTalks = carouselTalks.filter(carouselTalk => carouselTalk.presenter === currentUser)
+            // console.log("current user talks:", currentUserTalks)
+            return currentUserTalks
 
-            return talksWithComments
         } else if (searchQuery.value) {
             return filteredTalks.filter(talk => JSON.stringify(talk).toLowerCase().includes(searchQuery.value.toLowerCase()))
         }
-        return query.value ? filteredTalks : carouselTalks
-        
+        return query.value ? filteredTalks : carouselTalks;
     }
 })
 
@@ -126,7 +146,7 @@ const postTalk = () => {
                     <input type="search" v-model="searchQuery" placeholder="Search Talks">
                     <div class="button-group">
                         <button @click="query = ''" :class=" { active: query === ''}">Clear Filters</button>
-                        <!-- <button @click="query = 'carouselUser'" :class="{ active: query === 'carouselUser'}">Presenter</button> -->
+                        <button @click="query = currentUser" :class="{active: query == currentUser}">Current User</button>
                         <button
                              @click="query = 'comments'"
                             :class="{ active: query === 'comments' }">
@@ -304,7 +324,7 @@ input {
 .list-leave-to {
     opacity: 0;
     transform: translateY(10px)
-    
+
 }
 
 /* Adding some styles to the exit transition class can make the animation smoother */
