@@ -40,6 +40,11 @@ const filteredTalks = computed(() => {
         if (query.value == 'comments') {
             const talksWithComments = filteredTalks.filter((filteredTalk) => {return filteredTalk.comments.length > 0;});
             return talksWithComments;
+        } else if (query.value == 'mostRecent') {
+            const mostRecentTalks = carouselTalks.slice().sort((talkA, talkB) => {
+                return new Date(talkB.timestamp) - new Date(talkA.timestamp)
+            });
+            return mostRecentTalks
         } else if (query.value == currentUser) {
             const currentUserTalks = carouselTalks.filter(carouselTalk => carouselTalk.presenter === currentUser)
             return currentUserTalks;
@@ -69,6 +74,7 @@ const checkForRepeatTitle = props.carouselTalks.some((carouselTalk) => carouselT
                 title: talkTitle.value,
                 summary: talkSummary.value,
                 presenter: currentUser,
+                timeStamp: new Date(),
                 comments: [],
             })
         })
@@ -129,12 +135,12 @@ talkSummary.value = "";
                     <div class="button-group">
                         <button @click="query = ''" :class=" { active: query === ''}">Clear Filters</button>
                         <button @click="query = currentUser" :class="{active: query == currentUser}">Current User</button>
+                        <button @click="query = 'mostRecent'" :class="{active: query == 'mostRecent'}">Most Recent</button>
                         <button
                              @click="query = 'comments'"
                             :class="{ active: query === 'comments' }">
                             Comments
                         </button>
-                        <!-- <button>Title</button> -->
                     </div>
                 </div>
             </Transition>

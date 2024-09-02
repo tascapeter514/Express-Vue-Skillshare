@@ -51,11 +51,12 @@ const pool = new Pool({
 // })
 
 app.put('/talks/addTalk', async (req, res) => {
-    console.log("PUT REQUEST SUCCESSFUL")
-    let {presenter, title, summary} = req.body;
+    console.log("PUT REQUEST SUCCESSFUL");
+    let {presenter, title, summary, timeStamp} = req.body;
+    console.log("time stamp:", timeStamp)
     try {
-        let text = 'INSERT INTO talks (title, presenter, summary) VALUES ($1, $2, $3)'
-        let values = [title, presenter, summary];
+        let text = 'INSERT INTO talks (title, presenter, summary, timestamp) VALUES ($1, $2, $3, $4)'
+        let values = [title, presenter, summary, timeStamp];
         let result = await pool.query(text, values);
         if (result.rowCount > 0) {
             res.status(200).json({message: 'Talk was posted successfully'})
@@ -117,7 +118,7 @@ app.post('/talks/comments', async (req, res) => {
 //rewrite for comments array bug
 async function talkResponse() {
     console.log("TALK RESPONSE CREATED")
-    const query = `SELECT talks.title, talks.presenter, talks.summary,
+    const query = `SELECT talks.title, talks.presenter, talks.summary, talks.timestamp,
     COALESCE(
     jsonb_agg(
         CASE
@@ -132,7 +133,8 @@ async function talkResponse() {
     ) AS comments
     FROM talks
     LEFT JOIN comments ON talks.title = comments.talktitle
-    GROUP BY talks.title, talks.presenter, talks.summary;`
+    GROUP BY talks.title, talks.presenter, talks.summary, talks.timestamp
+    ORDER BY title;`
     let result = await pool.query(query)
     let data = JSON.stringify(result.rows)
     console.log("talk response data:", data)
