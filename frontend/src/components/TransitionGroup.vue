@@ -72,33 +72,31 @@ const filteredTalks = computed(() => {
     }
 })
 
+
 //Add time stamp?
 //fix bugs with repeatName. Build user repository? 
 const postTalk = () => {
-  console.log("input success:", talkTitle.value, talkSummary.value);
-  console.log("list of talk titles:", props.carouselTalks)
-  const repeatTalkTitle = props.carouselTalks.includes(talkTitle.value)
-  console.log("repeat talk table:", )
-  
-
-//   fetch('/talks/addTalk', {
-//     method: "PUT",
-//     headers: {
-//       'Content-Type': 'application/json'
-//     },
-//     body: JSON.stringify({
-//       title: talkTitle.value,
-//       summary: talkSummary.value,
-//       presenter: currentUser,
-//       comments: [],
-//     }) 
-//   });
-//   const repeatName = props.users.find((user) => user == props.user);
-//   if (!repeatName) {
-//     props.users.push(props.user);
-//   }
-  talkTitle.value = "";
-  talkSummary.value = "";
+//   console.log("input success:", talkTitle.value, talkSummary.value);
+const checkForRepeatTitle = props.carouselTalks.some((carouselTalk) => carouselTalk.title == talkTitle.value)
+// console.log("repeat talk:", checkForRepeatTitle)
+    if (checkForRepeatTitle) {
+        alert("There is already a talk with this title. Please enter another title for your talk.")
+    } else {
+        fetch('/talks/addTalk', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: talkTitle.value,
+                summary: talkSummary.value,
+                presenter: currentUser,
+                comments: [],
+            })
+        })
+    }
+talkTitle.value = "";
+talkSummary.value = "";
 }
 
 
