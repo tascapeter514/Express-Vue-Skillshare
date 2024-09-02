@@ -70,12 +70,7 @@ onMounted(() => {
   pollTalks(updateTalks);
 })
 
-watchEffect(() => {
-  console.log("carousel slides:", carouselSlides.value)
 
-
-
-})
 
 
 
@@ -102,6 +97,8 @@ watchEffect(() => {
       </ul>
       </nav>
   </header>
+
+
   <section>
       <div class="titleContainer">
         <h1 id="title">Pete's Skill Sharing Website</h1>

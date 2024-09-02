@@ -12,7 +12,7 @@ const props = defineProps({
 
 
 function handleNewComment() {
-    fetch('/talks/database/comments', {
+    fetch('/talks/comments', {
     method: "POST",
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({

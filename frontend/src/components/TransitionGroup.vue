@@ -32,7 +32,7 @@ const talkTitle = ref('');
 const talkSummary = ref('');
 
 
-
+//debug and remove logs and make improvements
 const filteredTalks = computed(() => {
     if (props.carouselTalks) {
         console.log("prop talks:", props.carouselTalks)
@@ -72,20 +72,27 @@ const filteredTalks = computed(() => {
     }
 })
 
+//Add time stamp?
+//fix bugs with repeatName. Build user repository? 
 const postTalk = () => {
   console.log("input success:", talkTitle.value, talkSummary.value);
-  fetch('/talks/database/addTalk', {
-    method: "PUT",
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      title: talkTitle.value,
-      summary: talkSummary.value,
-      presenter: currentUser,
-      comments: [],
-    }) 
-  });
+  console.log("list of talk titles:", props.carouselTalks)
+  const repeatTalkTitle = props.carouselTalks.includes(talkTitle.value)
+  console.log("repeat talk table:", )
+  
+
+//   fetch('/talks/addTalk', {
+//     method: "PUT",
+//     headers: {
+//       'Content-Type': 'application/json'
+//     },
+//     body: JSON.stringify({
+//       title: talkTitle.value,
+//       summary: talkSummary.value,
+//       presenter: currentUser,
+//       comments: [],
+//     }) 
+//   });
 //   const repeatName = props.users.find((user) => user == props.user);
 //   if (!repeatName) {
 //     props.users.push(props.user);
@@ -138,7 +145,6 @@ const postTalk = () => {
                         <button type="submit">Submit</button>
                     </form>
                 </div>
-                
             </Transition>
 
             <Transition>
@@ -157,6 +163,8 @@ const postTalk = () => {
                 </div>
             </Transition>
         </header>
+
+
         <div class="talk-grid">
             <TransitionGroup name="list">
                 <TalkCard

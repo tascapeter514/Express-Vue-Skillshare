@@ -43,7 +43,7 @@ const deleteTalk = (talkTitle) => {
   const encodedTitle = encodeURIComponent(talkTitle)
   // console.log("JSON title:", talkTitle)
   // console.log("encoded title:", encodedTitle)
-  fetch(`/talks/database/${encodedTitle}`, {
+  fetch(`/talks/${encodedTitle}`, {
     method: "DELETE",
     headers: {
       'Content-Type': 'application/json'
