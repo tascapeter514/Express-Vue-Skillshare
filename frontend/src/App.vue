@@ -56,6 +56,7 @@ const pollTalks = async (update) => {
     tag = response.headers.get("ETag");
     console.log(`Set tag to ${tag}`);
     const talkJson = await response.json()
+    console.log("talk json response:", talkJson)
     update(talkJson)
   }
 }
@@ -63,21 +64,18 @@ const updateTalks = (newTalks) => {
   console.log("new talks:", newTalks)
 
   carouselSlides.value = newTalks
+  console.log("carousel slides:", carouselSlides.value)
   return carouselSlides.value
 }
 
 onMounted(() => {
+  console.log("talk order pre longpoll:", carouselSlides.value)
   pollTalks(updateTalks);
+  console.log("talk order post longpoll:", carouselSlides.value)
 })
 
 
 
-
-
-
-//when i click left, move slides to the left
-//when i click right, move slides to the right
-//when i click the nav indicators, move to that slide
 
 
 

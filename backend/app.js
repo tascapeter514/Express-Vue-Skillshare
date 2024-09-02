@@ -41,16 +41,17 @@ const pool = new Pool({
 
 //CRUD ROUTE HANDLERS
 //do we replace GET talks with long polling?
-app.get('/talks', async (req, res, next) => {
-    try {
-        let data = await talkResponse()
-        res.send(data)
-    } catch(error) {
-        console.log('There was an error fetching the talks:', error.stack)
-    }
-})
+// app.get('/talks', async (req, res, next) => {
+//     try {
+//         let data = await talkResponse()
+//         res.send(data)
+//     } catch(error) {
+//         console.log('There was an error fetching the talks:', error.stack)
+//     }
+// })
 
 app.put('/talks/addTalk', async (req, res) => {
+    console.log("PUT REQUEST SUCCESSFUL")
     let {presenter, title, summary} = req.body;
     try {
         let text = 'INSERT INTO talks (title, presenter, summary) VALUES ($1, $2, $3)'
@@ -71,12 +72,14 @@ app.put('/talks/addTalk', async (req, res) => {
 
 app.delete('/talks/:title', async (req, res) => {
     let title = req.params.title;
+    console.log("title:", title)
     try {
         let talkTableText = 'DELETE FROM talks WHERE title = $1'
         let talkTableResult = await pool.query(talkTableText, [title])
         let commentTableText = 'DELETE from comments WHERE talktitle = $1'
         let commentTableResult = await pool.query(commentTableText, [title])
-        if (talkTableResult.rowCount && commentTableResult.rowCount > 0) {
+        console.log("table and row count:",talkTableResult.rowCount, commentTableResult.rowCount)
+        if (talkTableResult.rowCount > 0 && commentTableResult.rowCount > 0) {
             res.status(200).json({message: 'Your talk and all associated comments have been deleted'})
         } else {
             res.status(500).json({error: 'Error deleting talk and all associated comments'})
@@ -91,7 +94,6 @@ app.delete('/talks/:title', async (req, res) => {
 
 
 app.post('/talks/comments', async (req, res) => {
-
     try {
         let { message, author , title } = req.body;
         let text = 'INSERT INTO comments (talktitle, message, presenter) VALUES ($1, $2, $3)'
@@ -114,18 +116,26 @@ app.post('/talks/comments', async (req, res) => {
 //LONG POLLING
 //rewrite for comments array bug
 async function talkResponse() {
+    console.log("TALK RESPONSE CREATED")
     const query = `SELECT talks.title, talks.presenter, talks.summary,
-    array_agg(
+    COALESCE(
+    jsonb_agg(
+        CASE
+        WHEN comments.presenter IS NOT NULL THEN
         json_build_object(
             'message', comments.message,
             'presenter', comments.presenter
         )
+        END
+    ) FILTER (WHERE comments.message IS NOT NULL),
+        '[]'::jsonb
     ) AS comments
     FROM talks
     LEFT JOIN comments ON talks.title = comments.talktitle
     GROUP BY talks.title, talks.presenter, talks.summary;`
     let result = await pool.query(query)
     let data = JSON.stringify(result.rows)
+    console.log("talk response data:", data)
     return {
         body: data,
         status: 200,
@@ -139,8 +149,10 @@ async function talkResponse() {
 
 
 app.update = async function() {
-    console.log("app update cehck")
-    app.version++
+    console.log("app update check")
+    console.log("app.version pre-update:", app.version)
+    app.version++;
+    console.log("app.version post-update:", app.version)
     let response = await talkResponse();
     app.waiting.forEach(resolveFunction => {
         resolveFunction(response)
@@ -164,8 +176,10 @@ app.waitForChanges = function(time) {
 app.get('/talks/longpoll', async (req, res) => {
     let tag = /"(.*)"/.exec(req.headers["if-none-match"]);
     let wait = /\bwait=(\d+)/.exec(req.headers["prefer"]);
+    console.log("GET TALKS PRE TAG CONDITION")
     if (!tag || tag[1] != app.version) {
         let { body, headers } = await talkResponse();
+
         console.log(`No tag -- sending ${body}`)
         res.set(headers)
         res.send(body)
@@ -173,6 +187,7 @@ app.get('/talks/longpoll', async (req, res) => {
         res.send({status: 304});
     } else {
        try {
+        console.log("LONG POLL IN OPERATION AFTER UPDATE")
         let { status, body, headers }  = await app.waitForChanges(Number(wait[1]));
         if (typeof status !== 'number' || status < 100 || status >= 600) {
          throw new Error(`Invalid status code received: ${status}`)

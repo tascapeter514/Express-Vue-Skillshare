@@ -35,36 +35,14 @@ const talkSummary = ref('');
 //debug and remove logs and make improvements
 const filteredTalks = computed(() => {
     if (props.carouselTalks) {
-        console.log("prop talks:", props.carouselTalks)
         let carouselTalks = props.carouselTalks;
-        // console.log("query value:", query.value)
         const filteredTalks = carouselTalks.filter(carouselTalk => JSON.stringify(carouselTalk).includes(query.value))
         if (query.value == 'comments') {
-            console.log("commment check")
-            console.log("comment carousel filtered talks:", filteredTalks)
-            const talksWithComments = filteredTalks.filter((filteredTalk) => {
-                // console.log("carousel talk in filter:", filteredTalk);
-                // console.log("carousel filtered comments:", filteredTalk.comments.length)
-                // console.log("filtered talks presenter:", filteredTalk.comments[0].presenter)
-
-                if (filteredTalk.comments[0].presenter) {
-                    console.log("filtered comment check")
-                    return filteredTalk.comments.length > 0;
-                    
-                    // return filteredTalks.comments.length > 0;
-                } else {
-                    return
-                }
-            });
-            console.log("talks with comments:", talksWithComments)
+            const talksWithComments = filteredTalks.filter((filteredTalk) => {return filteredTalk.comments.length > 0;});
             return talksWithComments;
         } else if (query.value == currentUser) {
-            // console.log("current user check")
-            // console.log("talk presenter:", carouselTalks[0].presenter)
             const currentUserTalks = carouselTalks.filter(carouselTalk => carouselTalk.presenter === currentUser)
-            // console.log("current user talks:", currentUserTalks)
-            return currentUserTalks
-
+            return currentUserTalks;
         } else if (searchQuery.value) {
             return filteredTalks.filter(talk => JSON.stringify(talk).toLowerCase().includes(searchQuery.value.toLowerCase()))
         }
