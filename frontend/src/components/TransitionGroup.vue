@@ -1,12 +1,12 @@
 <script setup>
-import TalkCard from './TalkCard.vue'
+import Talk from './Talk.vue'
 import { ref, computed, watchEffect } from 'vue';
 
 const props = defineProps({
-    carouselTalks: Array
+    talks: Array
 })
 
-//current user and user input variables
+//CURRENT USER AND USER INPUT VARIABLES
 let currentUser = localStorage.getItem('user') || "Anon";
 const userField = ref('')
 
@@ -31,37 +31,34 @@ const searchQuery = ref('');
 const talkTitle = ref('');
 const talkSummary = ref('');
 
-
+//FILTER FUNCTION
 //debug and remove logs and make improvements
 const filteredTalks = computed(() => {
-    if (props.carouselTalks) {
-        let carouselTalks = props.carouselTalks;
-        const filteredTalks = carouselTalks.filter(carouselTalk => JSON.stringify(carouselTalk).includes(query.value))
+    if (props.talks) {
+        let talks = props.talks;
+        const filteredTalks = talks.filter(talk => JSON.stringify(talk).includes(query.value))
         if (query.value == 'comments') {
             const talksWithComments = filteredTalks.filter((filteredTalk) => {return filteredTalk.comments.length > 0;});
             return talksWithComments;
         } else if (query.value == 'mostRecent') {
-            const mostRecentTalks = carouselTalks.slice().sort((talkA, talkB) => {
+            const mostRecentTalks = talks.slice().sort((talkA, talkB) => {
                 return new Date(talkB.timestamp) - new Date(talkA.timestamp)
             });
             return mostRecentTalks
         } else if (query.value == currentUser) {
-            const currentUserTalks = carouselTalks.filter(carouselTalk => carouselTalk.presenter === currentUser)
+            const currentUserTalks = talks.filter(talk => talk.presenter === currentUser)
             return currentUserTalks;
         } else if (searchQuery.value) {
             return filteredTalks.filter(talk => JSON.stringify(talk).toLowerCase().includes(searchQuery.value.toLowerCase()))
         }
-        return query.value ? filteredTalks : carouselTalks;
+        return query.value ? filteredTalks : talks;
     }
 })
 
 
-//Add time stamp?
-//fix bugs with repeatName. Build user repository? 
+//PUT FETCH REQUEST
 const postTalk = () => {
-//   console.log("input success:", talkTitle.value, talkSummary.value);
-const checkForRepeatTitle = props.carouselTalks.some((carouselTalk) => carouselTalk.title == talkTitle.value)
-// console.log("repeat talk:", checkForRepeatTitle)
+const checkForRepeatTitle = props.talks.some((talk) => talk.title == talkTitle.value)
     if (checkForRepeatTitle) {
         alert("There is already a talk with this title. Please enter another title for your talk.")
     } else {
@@ -88,10 +85,10 @@ talkSummary.value = "";
 </script>
 
 <template>
+    <!-- CREATE HEADER BUTTONS COMPONENT -->
     <main>
         <header>
             <div class="header-flex">
-                <h1>Talk Grid</h1>
                     <div class="header-flex_buttons">
                         <button @click="filtersVisible = !filtersVisible" :class="{ active: filtersVisible }">
                             {{ filtersVisible ? 'Hide Filters' : 'Show Filters' }}
@@ -105,6 +102,8 @@ talkSummary.value = "";
                     </div>
             </div>
 
+            <!-- CURRENT USER BUTTON COMPONENT -->
+
             <Transition>
                 <div class="currentUserForm" v-show="currentUserVisible">
                     <h2>The current user is {{ currentUser }} </h2>
@@ -114,6 +113,8 @@ talkSummary.value = "";
                     </div>
                 </div>
             </Transition>
+
+            <!-- SUBMIT FORM COMPONENT -->
             
 
             <Transition>
@@ -128,6 +129,8 @@ talkSummary.value = "";
                     </form>
                 </div>
             </Transition>
+
+            <!-- FILTER BUTTONS COMPONENT -->
 
             <Transition>
                 <div v-show="filtersVisible" class="headers-filters">
@@ -149,14 +152,14 @@ talkSummary.value = "";
 
         <div class="talk-grid">
             <TransitionGroup name="list">
-                <TalkCard
-                v-for="(carouselTalk, index) of filteredTalks"
+                <Talk
+                v-for="(talk, index) of filteredTalks"
                 class="talkCard"
                 :key="index"
-                :carouselTalk="carouselTalk"
-                :carouselIndex="index"
-                :carouselUser="currentUser"
-                ></TalkCard>
+                :talk="talk"
+                :index="index"
+                :currentUser="currentUser"
+                ></Talk>
             </TransitionGroup>
         </div>
     </main>
@@ -211,6 +214,7 @@ header {
 }
 .header-flex_buttons {
     display: flex;
+    justify-content: right;
 
 }
 

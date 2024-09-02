@@ -1,5 +1,4 @@
 <script setup>
-
 const newComment = defineModel()
 
 const props = defineProps({
@@ -10,8 +9,8 @@ const props = defineProps({
     title: String
 })
 
-
-function handleNewComment() {
+//POST FETCH REQUEST
+function addComment() {
     fetch('/talks/comments', {
     method: "POST",
     headers: {'Content-Type': 'application/json'},
@@ -24,12 +23,8 @@ function handleNewComment() {
   newComment.value = ""
 }
 
-
-
-
 </script>
 <template>
-
       <div v-for="(comment, index) in props.comments" :key="index">
         <div v-if="comment.message">
           <strong> {{ comment.presenter }}</strong> : {{ comment.message }}
@@ -37,7 +32,7 @@ function handleNewComment() {
       </div>
 
 <div>
-    <form @submit.prevent="handleNewComment">
+    <form @submit.prevent="addComment">
     <input v-model="newComment">
     <button>Add comment</button>
     </form>
@@ -63,9 +58,4 @@ button {
   border: black;
   padding: 5px
 }
-
-
-
-
-
 </style>

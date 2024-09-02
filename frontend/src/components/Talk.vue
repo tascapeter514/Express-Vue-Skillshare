@@ -1,48 +1,20 @@
-<template>
-    <div class="talk">
-        <div class="flex">
-            <h5 class="card-text_title">
-                {{ carouselTalk.title }}
-                <button @click="deleteTalk(carouselTalk.title)">Remove</button>
-            </h5>
-            <div class="card-text_presenter">
-                by <strong>{{ carouselTalk.presenter }}</strong>
-                
-            </div>
-            <div class="card-text_summary">
-                <!-- Add Summary -->
-              <strong>  {{ carouselTalk.summary }} </strong>
-            </div>
-        </div>
-        <!-- Add Comments Here -->
-        <AsyncComments
-        :comments="carouselTalk.comments"
-        :presenter="props.carouselUser"
-        :title="carouselTalk.title"></AsyncComments>
-    </div>
-
-</template>
-
 <script setup>
-
-import { onMounted, ref, defineAsyncComponent} from 'vue';
-
-
+import { defineAsyncComponent} from 'vue';
 
 const props = defineProps({
-    carouselTalk: Object,
-    carouselUser: String,
-    carouselIndex: Number
+    talk: Object,
+    currentUser: String,
+    index: Number
 })
 
+//ASYNC COMMENTS COMPONENT
 const AsyncComments = defineAsyncComponent(() => 
     import('/src/components/Comments.vue')
 )
 
+//DELETE FETCH REQUEST
 const deleteTalk = (talkTitle) => {
   const encodedTitle = encodeURIComponent(talkTitle)
-  // console.log("JSON title:", talkTitle)
-  // console.log("encoded title:", encodedTitle)
   fetch(`/talks/${encodedTitle}`, {
     method: "DELETE",
     headers: {
@@ -52,6 +24,33 @@ const deleteTalk = (talkTitle) => {
 }
 
 </script>
+
+
+<template>
+    <div class="talk">
+        <div class="flex">
+            <h5 class="card-text_title">
+                {{ talk.title }}
+                <button @click="deleteTalk(talk.title)">Remove</button>
+            </h5>
+            <div class="card-text_presenter">
+                by <strong>{{ talk.presenter }}</strong> 
+            </div>
+            <div class="card-text_summary">
+              <strong>  {{ talk.summary }} </strong>
+            </div>
+        </div>
+
+        <!-- COMMENTS COMPONENT -->
+        <AsyncComments
+        :comments="talk.comments"
+        :presenter="props.currentUser"
+        :title="talk.title"></AsyncComments>
+
+    </div>
+</template>
+
+
 
 <style scoped>
 
@@ -64,8 +63,6 @@ const deleteTalk = (talkTitle) => {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-
-
     border: orange solid;
     box-shadow: 15px 15px 15px black;
     gap: 1rem;
@@ -83,13 +80,6 @@ const deleteTalk = (talkTitle) => {
     padding-bottom: 0.2rem;
 }
 
-.card-text_title h5 {
-    /* font-size: 1.2rem;
-    font-weight: 600;
-    padding-top: 1rem;
-    padding-bottom: 0.2rem; */
-}
-
 .card-text_summary {
     padding-bottom: 0.5rem;
 }
@@ -102,13 +92,9 @@ const deleteTalk = (talkTitle) => {
 .talk:hover {
     transform: scale(1.15) translateY(-30px) translateX(-20px);
     box-shadow: 3px 2px 25px rgba(2, 129, 255, .03);
-    /* background: orange; */
     transition: 1s ease;
 
 }
-
-
-
 
 button {
   background-color: orange;
