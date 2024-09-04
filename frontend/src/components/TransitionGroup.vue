@@ -1,6 +1,7 @@
 <script setup>
 import Talk from './Talk.vue'
 import SubmitForm from './SubmitForm.vue'
+import UserForm from './UserForm.vue'
 import { ref, computed, watchEffect } from 'vue';
 
 const props = defineProps({
@@ -9,15 +10,7 @@ const props = defineProps({
 
 //CURRENT USER AND USER INPUT VARIABLES
 let currentUser = ref(localStorage.getItem('user') || "Anon");
-const userField = ref('')
 
-function setUserName() {
-    currentUser.value = userField.value;
-    if (event.key == "Enter") {
-        localStorage.setItem("user", currentUser.value)
-    }
-    userField.value = "";
-}
 
 
 
@@ -35,17 +28,28 @@ const searchQuery = ref('');
 const filteredTalks = computed(() => {
     if (props.talks) {
         let talks = props.talks;
+        console.log("current user and query value:", currentUser.value, query.value)
         const filteredTalks = talks.filter(talk => JSON.stringify(talk).includes(query.value))
+        console.log("filtered talks before any condition:", filteredTalks)
         if (query.value == 'comments') {
-            const talksWithComments = filteredTalks.filter((filteredTalk) => {return filteredTalk.comments.length > 0;});
+            const talksWithComments = talks.filter((filteredTalk) => {return filteredTalk.comments.length > 0;});
             return talksWithComments;
         } else if (query.value == 'mostRecent') {
             const mostRecentTalks = talks.slice().sort((talkA, talkB) => {
                 return new Date(talkB.timestamp) - new Date(talkA.timestamp)
             });
             return mostRecentTalks
-        } else if (query.value == currentUser) {
-            const currentUserTalks = talks.filter(talk => talk.presenter === currentUser)
+        } else if (query.value == 'currentUser') {
+            console.log("current user filter check")
+            console.log("current user filter value:", currentUser.value)
+            console.log("current filtered talks:", filteredTalks)
+            const currentUserTalks = talks.filter(talk => {
+                console.log("presenter:", talk.presenter, "currentUser:", currentUser.value);
+                return talk.presenter === currentUser.value;
+            })
+
+
+
             return currentUserTalks;
         } else if (searchQuery.value) {
             return filteredTalks.filter(talk => JSON.stringify(talk).toLowerCase().includes(searchQuery.value.toLowerCase()))
@@ -56,7 +60,14 @@ const filteredTalks = computed(() => {
 
 
 
+const setCurrentUser = (userInput) => {
+    console.log("set current user:", userInput)
+    currentUser.value = userInput;
+}
 
+watchEffect(() => {
+    console.log("watch effect currentUser:", currentUser)
+})
 
 
 </script>
@@ -82,13 +93,8 @@ const filteredTalks = computed(() => {
             <!-- CURRENT USER BUTTON COMPONENT -->
 
             <Transition>
-                <div class="currentUserForm" v-show="currentUserVisible">
-                    <h2>The current user is {{ currentUser }} </h2>
-                    <div class="inputField">
-                        <label for="userField">Your name: </label>
-                        <input id="userField" v-model="userField" @keydown.enter="setUserName">
-                    </div>
-                </div>
+                <UserForm @set-user-name="(userInput) => setCurrentUser(userInput)" :currentUserVisible="currentUserVisible" :currentUser="currentUser"></UserForm>
+                
             </Transition>
 
             <!-- SUBMIT FORM COMPONENT -->
@@ -105,7 +111,7 @@ const filteredTalks = computed(() => {
                     <input type="search" v-model="searchQuery" placeholder="Search Talks">
                     <div class="button-group">
                         <button @click="query = ''" :class=" { active: query === ''}">Clear Filters</button>
-                        <button @click="query = currentUser" :class="{active: query == currentUser}">Current User</button>
+                        <button @click="query = 'currentUser'" :class="{active: query == 'currentUser'}">Current User</button>
                         <button @click="query = 'mostRecent'" :class="{active: query == 'mostRecent'}">Most Recent</button>
                         <button
                              @click="query = 'comments'"
@@ -144,18 +150,7 @@ main {
     position: relative;
 }
 
-.currentUserForm {
-    border: orange solid;
-    border-radius: 50px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-    width: 100%;
-    height: 100%;
-    box-shadow: 15px 15px 15px black;
-    position: relative;
-}
+
 
 header {
     margin-bottom: 2rem;
