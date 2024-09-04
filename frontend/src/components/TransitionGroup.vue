@@ -1,5 +1,6 @@
 <script setup>
 import Talk from './Talk.vue'
+import SubmitForm from './SubmitForm.vue'
 import { ref, computed, watchEffect } from 'vue';
 
 const props = defineProps({
@@ -7,13 +8,13 @@ const props = defineProps({
 })
 
 //CURRENT USER AND USER INPUT VARIABLES
-let currentUser = localStorage.getItem('user') || "Anon";
+let currentUser = ref(localStorage.getItem('user') || "Anon");
 const userField = ref('')
 
 function setUserName() {
-    currentUser = userField.value;
+    currentUser.value = userField.value;
     if (event.key == "Enter") {
-        localStorage.setItem("user", currentUser)
+        localStorage.setItem("user", currentUser.value)
     }
     userField.value = "";
 }
@@ -27,9 +28,7 @@ const talkFormVisible = ref(false);
 const query = ref('');
 const searchQuery = ref('');
 
-//talk form input variables
-const talkTitle = ref('');
-const talkSummary = ref('');
+
 
 //FILTER FUNCTION
 //debug and remove logs and make improvements
@@ -56,29 +55,7 @@ const filteredTalks = computed(() => {
 })
 
 
-//PUT FETCH REQUEST
-const postTalk = () => {
-const checkForRepeatTitle = props.talks.some((talk) => talk.title == talkTitle.value)
-    if (checkForRepeatTitle) {
-        alert("There is already a talk with this title. Please enter another title for your talk.")
-    } else {
-        fetch('/talks/addTalk', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                title: talkTitle.value,
-                summary: talkSummary.value,
-                presenter: currentUser,
-                timeStamp: new Date(),
-                comments: [],
-            })
-        })
-    }
-talkTitle.value = "";
-talkSummary.value = "";
-}
+
 
 
 
@@ -118,16 +95,7 @@ talkSummary.value = "";
             
 
             <Transition>
-                <div class="talkSubmitForm" v-show="talkFormVisible">
-                    <form @submit.prevent="postTalk">
-                        <h3>Submit a Talk</h3>
-                        <label for="title">Title: </label>
-                        <input v-model="talkTitle">
-                        <label for="summary">Summary: </label>
-                        <input v-model="talkSummary">
-                        <button type="submit">Submit</button>
-                    </form>
-                </div>
+                <SubmitForm :talks="talks" :talkFormVisible="talkFormVisible" :currentUser="currentUser"></SubmitForm>
             </Transition>
 
             <!-- FILTER BUTTONS COMPONENT -->
@@ -176,18 +144,6 @@ main {
     position: relative;
 }
 
-.talkSubmitForm {
-    border: orange solid;
-    border-radius: 50px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-    width: 100%;
-    height: 100%;
-    box-shadow: 15px 15px 15px black;
-    position: relative;
-}
 .currentUserForm {
     border: orange solid;
     border-radius: 50px;
