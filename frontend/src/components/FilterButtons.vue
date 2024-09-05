@@ -21,9 +21,10 @@ const emit = defineEmits(['filterUpdates'])
 const filteredTalks = computed(() => {
     if (props.talks) {
         let talks = props.talks;
+        console.log("current user in computed:", props.currentUser)
         let currentUser = props.currentUser;
-        console.log("current user and query value:", currentUser.value, query.value)
-        const filteredTalks = talks.filter(talk => JSON.stringify(talk).includes(query.value))
+        console.log("current user and query value:", currentUser, query.value)
+        // const filteredTalks = talks.filter(talk => JSON.stringify(talk).includes(query.value))
         console.log("filtered talks before any condition:", filteredTalks)
         if (query.value == 'comments') {
             const talksWithComments = talks.filter((filteredTalk) => {return filteredTalk.comments.length > 0;});
@@ -35,11 +36,11 @@ const filteredTalks = computed(() => {
             return mostRecentTalks
         } else if (query.value == 'currentUser') {
             console.log("current user filter check")
-            console.log("current user filter value:", currentUser.value)
+            console.log("current user filter value:", currentUser)
             console.log("current filtered talks:", filteredTalks)
             const currentUserTalks = talks.filter(talk => {
-                console.log("presenter:", talk.presenter, "currentUser:", currentUser.value);
-                return talk.presenter === currentUser.value;
+                console.log("presenter:", talk.presenter, "currentUser:", currentUser);
+                return talk.presenter === currentUser;
             })
             return currentUserTalks;
         } else if (searchQuery.value) {

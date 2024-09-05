@@ -11,7 +11,7 @@ const props = defineProps({
 
 //CURRENT USER AND USER INPUT VARIABLES
 let currentUser = ref(localStorage.getItem('user') || "Anon");
-
+const filteredTalks = ref([])
 
 
 //filter and query references
@@ -31,7 +31,8 @@ watchEffect(() => {
 })
 
 function handleFilteredTalks(newTalks) {
-    console.log("new filtered talks:", newTalks)
+    console.log("new filtered talks:", newTalks);
+    filteredTalks.value = newTalks
 }
 
 </script>
@@ -151,9 +152,6 @@ button {
   transition: 0.3s;
 }
 
-h1 {
-    font-weight: 700;
-}
 
 .talk-grid {
     display: grid;
