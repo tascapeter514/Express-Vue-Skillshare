@@ -16,15 +16,12 @@ let currentUser = ref(localStorage.getItem('user') || "Anon");
 const userField = ref('')
 
 function setUserName(event) {
-    console.log("set user name input value:", userField.value)
     currentUser.value = userField.value
-
     if (event.key == "Enter") {
         localStorage.setItem("user", currentUser.value)
     }
     emits('setUserName', currentUser.value)
     userField.value = "";
-    
 }
 
 

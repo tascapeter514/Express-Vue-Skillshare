@@ -3,6 +3,7 @@ import Talk from './Talk.vue'
 import SubmitForm from './SubmitForm.vue'
 import UserForm from './UserForm.vue'
 import FilterButtons from './FilterButtons.vue'
+import HeaderButtons from './HeaderButtons.vue'
 import { ref, computed, watchEffect } from 'vue';
 
 const props = defineProps({
@@ -20,46 +21,45 @@ const talkFormVisible = ref(false);
 const filtersVisible = ref(false);
 
 const setCurrentUser = (userInput) => {
-    console.log("set current user:", userInput)
     currentUser.value = userInput;
 }
 
-
-//USE TO EMIT AN EVENT WHEN THE FILTERED TALKS CHANGE
-watchEffect(() => {
-    console.log("watch effect currentUser:", currentUser)
-})
-
 function handleFilteredTalks(newTalks) {
-    console.log("new filtered talks:", newTalks);
     filteredTalks.value = newTalks
 }
 
+
+function handleHeaderUpdates(updatedHeaders) {
+    const [updatedFilters, updatedTalkForm, updatedCurrentUser] = updatedHeaders;
+    filtersVisible.value = updatedFilters;
+    talkFormVisible.value = updatedTalkForm;
+    currentUserVisible.value = updatedCurrentUser
+
+}
 </script>
 
 <template>
-    <!-- CREATE HEADER BUTTONS COMPONENT -->
+    
     <main>
         <header>
-            <div class="header-flex">
-                    <div class="header-flex_buttons">
-                        <button @click="filtersVisible = !filtersVisible" :class="{ active: filtersVisible }">
-                            {{ filtersVisible ? 'Hide Filters' : 'Show Filters' }}
-                        </button>
-                        <button @click="currentUserVisible = !currentUserVisible" :class="{ active: currentUserVisible }">
-                            {{ currentUserVisible ? 'Hide Current User' : 'Show Current User' }}
-                        </button>
-                        <button @click="talkFormVisible = !talkFormVisible" :class=" { active: talkFormVisible }">
-                            {{ talkFormVisible ? 'Hide Submit Form' : 'Show Submit Form' }}
-                        </button>
-                    </div>
-            </div>
+            <!-- HEADER BUTTONS COMPONENT -->
+            <HeaderButtons 
+                :currentUserVisible="currentUserVisible" 
+                :talkFormVisible="talkFormVisible"
+                :filtersVisible="filtersVisible"
+                @header-updates="(updatedHeaders) => handleHeaderUpdates(updatedHeaders)"
+                >
+            </HeaderButtons>
 
-            <!-- CURRENT USER BUTTON COMPONENT -->
+
+            <!-- CURRENT USER COMPONENT -->
 
             <Transition>
-                <UserForm @set-user-name="(userInput) => setCurrentUser(userInput)" :currentUserVisible="currentUserVisible" :currentUser="currentUser"></UserForm>
-                
+                <UserForm
+                    @set-user-name="(userInput) => setCurrentUser(userInput)"
+                    :currentUserVisible="currentUserVisible" 
+                    :currentUser="currentUser">
+                </UserForm>
             </Transition>
 
             <!-- SUBMIT FORM COMPONENT -->
@@ -70,7 +70,7 @@ function handleFilteredTalks(newTalks) {
             </Transition>
 
             <!-- FILTER BUTTONS COMPONENT -->
-            <!-- CREATE FILTER BUTTONS COMPONENT AND EMIT AND EVENT WHEN FILTER TALKS VALUE CHANGES -->
+
 
             <Transition>
                 <FilterButtons 
@@ -118,22 +118,7 @@ header {
     flex-direction: column;
     gap: 1rem;
 }
-.header-flex {
-    display: flex;
-    align-items: center;  
-    justify-content: space-between;
-}
-.header-flex_buttons {
-    display: flex;
-    justify-content: right;
 
-}
-
-
-.header-flex_buttons button.active {
-    background-color: blue;
-    color: white;
-} 
 
 button {
   font-size: 1rem;
